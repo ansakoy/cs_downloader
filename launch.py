@@ -1,0 +1,71 @@
+'''
+Модуль проверяет корректность запроса и определяет сценарий выполнения
+задачи.
+'''
+import os
+
+import downloader.process as process
+import downloader.api_builder as api_builder
+import downloader.daterange_processor as daterange_processor
+from settings import *
+
+
+def get_query_info_text(params, daterange=None):
+    text = 'Параметры выгрузки:'
+    for key in params:
+        text += '\n' + key + ': ' + params[key]
+    if daterange:
+        text += '\ndaterange по умолчанию: ' + daterange
+    return text
+
+
+def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30, demo=False):
+    if demo:
+        # При demo=True используются параметры запроса по умолчанию [из settings].
+        params = DEFAULT_PARAMS
+    elif not source:
+        # Если источник не указан, ищется файл params.csv с параметрами в папке cs_downloader.params
+        default_location = os.path.join(PARAMS_DIR, PARAMS_FILE)
+        try:
+            params = process.get_params_from_csv(default_location)
+
+    elif source and source.endswith('.csv'):
+        params = process.get_params_from_csv(source)
+    else:
+        print(NO_PARAMS_MSG)
+        return
+
+    # Если с параметрами что-то не в порядке
+    if type(params) is str:
+        print(params)
+        return
+    if not api_builder.has_valid_fields(params):
+        print(WRONG_PARAMS_MSG)
+        return
+
+    strategy = api_builder.choose_strategy(params)
+    query_date = api_builder.build_query(strategy, params)
+    api_base = query_date[0]
+    daterange_str = query_date[1]
+    date_for_output = None
+    if not daterange_str:
+        begin, end = daterange_processor.get_default_daterange()
+        daterange_str = daterange_processor.date_to_str(begin, end)
+        date_for_output = daterange_str
+    print(get_query_info_text(params, date_for_output))
+
+    if task == 'INFO':
+        print(process.get_query_info(api_base, daterange_str, strategy, span))
+        return
+
+    elif task == 'BY_CONTRACT' or task == 'BY_PRODUCT':
+        print(process.extract_data(api_base, daterange_str, strategy, out_format, out_name, span, task))
+        return
+
+    else:
+        print('Указана некорректная задача.')
+
+
+if __name__ == '__main__':
+    launch(source='downloader/contr_params.csv', task='BY_PRODUCT', out_format='JSON', out_name='small_msk')
+    # launch(task='CSV')
