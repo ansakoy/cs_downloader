@@ -33,7 +33,7 @@ format_options.add_argument('-j', '--json',
                     action='store_true',
                     help='Store extracted data in JSON; default: CSV')
 
-def launch_cs_analyst(okpd, okpd2, okpd_cat, okpd2_cat, daterange, email):
+def launch_csd(params_source, task, outformat, out_name, span, demo):
     if not a.daterange:
         daterange = dp.default_period()
     period = dp.convert_date(daterange)
@@ -72,4 +72,4 @@ def launch_cs_analyst(okpd, okpd2, okpd_cat, okpd2_cat, daterange, email):
             send_email(subject, fname, text, email)
 if __name__ == '__main__':
     a = parser.parse_args()
-    launch_cs_analyst(a.okpd, a.okpd2, a.okpd_cat, a.okpd2_cat, a.daterange, a.mail, a.numdays)
+    launch_csd(a.query, a.span, outformat, out_name, span, demo)

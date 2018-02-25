@@ -6,19 +6,11 @@ import csv
 import json
 import os
 import sys
-try:
-    from openpyxl import Workbook
-except ImportError:
-    print('FAILED TO IMPORT openpyxl')
+from openpyxl import Workbook
 
-sys.path.append('CS_DOWNLOADER\cs_downloader')
-from definitions import ROOT_DIR
 
-PATH = 'data'
+PATH = '../data'
 DEFAULT_FNAME = 'contracts_{}'
-folder_contents = os.listdir(ROOT_DIR)
-# if PATH not in folder_contents:
-#     os.makedirs('data')
 
 class JsonWriter():
 

@@ -56,10 +56,7 @@ def get_params_from_csv(source):
     Возвращает словарь, содержащий только поля с заполненными значениями.
     Если скрипт не находит файла, то возвращает предупреждение.
     '''
-    alert = 'Не могу найти файл с параметрами: {}'.format(source)
-    if not source:
-        print('Параметры не заданы. Выгрузка по умолчанию.')
-        return DEFAULT_PARAMS
+    alert = 'Не могу найти файл CSV с параметрами: {}'.format(source)
     params_dict = dict()
     try:
         with open(source, 'r', encoding='utf-8') as handler:
