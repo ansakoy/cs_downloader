@@ -13,6 +13,7 @@ import downloader.daterange_processor as drp
 from downloader.api_builder import SEARCH, SELECT
 from downloader.write_file import JsonWriter, CsvWriter, XlsxWriter
 from downloader.extract import *
+import downloader.settings as settings
 
 # import daterange_processor as drp
 # from api_builder import SEARCH, SELECT
@@ -38,6 +39,7 @@ HEADERS_PRODUCT = [CLEARSPENDING_URL, REGNUM, SIGN_DATE,
                    SINGLE_PRICE, OKEI, PRODUCT_SUM, QUANTITY,
                    CUSTOMER_NAME, CUSTOMER_INN, CUSTOMER_KPP,
                    FST_SUPP_NAME, FST_SUPP_INN, FST_SUPP_KPP, NUM_SUPPS,
+                   CONTRACT_PRICE,
                    CURRENCY, REGION_NAME, CONTRACT_STAGE, FZ]
 HEADERS_CONTRACT = [CLEARSPENDING_URL, REGNUM, SIGN_DATE,
                     FST_PROD_DESCR, NUM_PRODUCTS,
@@ -191,7 +193,7 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
                 writer.stop()
                 return response
         writer.stop()
-        return 'Готово'
+        return settings.DONE_MSG
     begin, end = drp.str_to_date(drange)
     ranges = drp.split_daterange(begin, end, span)
     too_many = 0
@@ -226,8 +228,9 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
                         writer.write(by_contract(contract))
                     else:
                         products = by_product(contract)
-                        for product in products:
-                            writer.write(product)
+                        if products:
+                            for product in products:
+                                writer.write(product)
             time.sleep(6)
     writer.stop()
     alert = ''
@@ -241,7 +244,7 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
         более короткий период дробления по временному дипапзону
         или использовать дополнительные параметры фильтрации
         (например, по региону заказчика или по ценовому диапазону).'''.format(span)
-    return 'Готово' + alert
+    return settings.DONE_MSG + alert
 
 
 def get_query_info(api_query, drange, strategy, span):

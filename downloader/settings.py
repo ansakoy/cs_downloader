@@ -31,3 +31,7 @@ DEFAULT_PARAMS = {'customerregion': '77',
 
 PARAMS_DIR = 'params'
 PARAMS_FILE = 'params.csv'
+
+# Результат
+OUTPUT_PATH = ''
+DONE_MSG = 'Готово. Путь к сохраненному файлу: {}'.format(OUTPUT_PATH)

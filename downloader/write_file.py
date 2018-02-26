@@ -5,11 +5,12 @@
 import csv
 import json
 import os
-import sys
 from openpyxl import Workbook
+import downloader.settings as settings
 
 
-PATH = '../data'
+# parent = os.path.normpath(os.getcwd() + os.sep + os.pardir)
+PATH = os.path.join(os.getcwd(), 'data')
 DEFAULT_FNAME = 'contracts_{}'
 
 class JsonWriter():
@@ -19,6 +20,7 @@ class JsonWriter():
             self.fname = os.path.join(PATH, DEFAULT_FNAME.format(daterange) + '.json')
         else:
             self.fname = os.path.join(PATH, outputname + '.json')
+        settings.OUTPUT_PATH += self.fname
         self.first = True
         self.handler = None
 
@@ -44,6 +46,7 @@ class CsvWriter():
             self.fname = os.path.join(PATH, DEFAULT_FNAME.format(daterange) + '.csv')
         else:
             self.fname = os.path.join(PATH, outputname + '.csv')
+        settings.OUTPUT_PATH += self.fname
         self.writer = None
         self.handler = None
         self.headers = headers
@@ -67,6 +70,7 @@ class XlsxWriter():
             self.fname = os.path.join(PATH, DEFAULT_FNAME.format(daterange) + '.xlsx')
         else:
             self.fname = os.path.join(PATH, outputname + '.xlsx')
+        settings.OUTPUT_PATH += self.fname
         self.handler = None
         self.sheet = None
         self.headers = headers
@@ -91,5 +95,4 @@ class XlsxWriter():
 
 
 if __name__ == '__main__':
-    print(ROOT_DIR)
-    print(folder_contents)
+    pass

@@ -11,7 +11,7 @@ from downloader.settings import *
 
 
 def get_query_info_text(params, daterange=None):
-    text = 'Параметры выгрузки:'
+    text = 'Параметры запроса:'
     for key in params:
         text += '\n' + key + ': ' + params[key]
     if daterange:

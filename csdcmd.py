@@ -16,7 +16,6 @@ parser.add_argument('-n', '--name',
                     help='Name for output file, e.g. "contracts_spb"')
 parser.add_argument('-d', '--demo',
                     action='store_true',
-                    metavar='',
                     help='First segments of OKPD2 code')
 extract_options = parser.add_mutually_exclusive_group()
 extract_options.add_argument('-c', '--contracts',
@@ -26,50 +25,42 @@ extract_options.add_argument('-p', '--products',
                     action='store_true',
                     help='Extract data in "1 line = 1 product" mode')
 format_options = extract_options = parser.add_mutually_exclusive_group()
-format_options.add_argument('-x', '--xlsx',
+format_options.add_argument('-x', '--xlsxout',
                     action='store_true',
                     help='Store extracted data in XLSX; default: CSV')
-format_options.add_argument('-j', '--json',
+format_options.add_argument('-j', '--jsonout',
                     action='store_true',
                     help='Store extracted data in JSON; default: CSV')
 
-def launch_csd(params_source, task, outformat, out_name, span, demo):
-    if not a.daterange:
-        daterange = dp.default_period()
-    period = dp.convert_date(daterange)
-    if a.okpd or a.okpd2 or a.okpd_cat or a.okpd2_cat:
-        if a.daterange:
-            analyst = CSProduct(start_stop=daterange,
-                                okpd=okpd,
-                                okpd2=okpd2,
-                                okpd_cat=okpd_cat,
-                                okpd2_cat=okpd2_cat)
-        else:
-            analyst = CSProduct(okpd=okpd,
-                                okpd2=okpd2,
-                                okpd_cat=okpd_cat,
-                                okpd2_cat=okpd2_cat)
-        analyst.product_launcher()
-        if a.mail:
-            begin = dp.to_unicode(period[0])
-            end = dp.to_unicode(period[1])
-            subject = analyst.filename
-            text = 'Дата и время выгрузки: {}-{}'.format(begin, end)
-            fname = analyst.filename + '.xlsx'
-            send_email(subject, fname, text, email)
-    else:
-        if a.daterange:
-            analyst = CSAnalyst(start_stop=period)
-        elif a.numdays:
-            analyst = CSAnalyst(period=period)
-        else:
-            analyst = CSAnalyst()
-        analyst.standard_launcher()
-        if a.mail:
-            subject = analyst.filename
-            text = 'Дата и время выгрузки: {}'.format(datetime.datetime.now()).encode('utf-8')
-            fname = 'data/' + analyst.filename + '.xlsx'
-            send_email(subject, fname, text, email)
+def launch_csd(query, contracts, products, jsonout, xlsxout, name,
+                span, demo):
+    task = 'INFO'
+    if a.contracts:
+        task = 'BY_CONTRACT'
+    elif a.products:
+        task = 'BY_PRODUCT'
+    outformat = 'CSV'
+    if a.jsonout:
+        outformat= 'JSON'
+    elif a.xlsxout:
+        out_format= 'XLSX'
+    name = None
+    if a.name:
+        name = name
+    span = 30
+    if a.span:
+        try:
+            span = int(span)
+        except ValueError:
+            print('Use integer values for span.')
+            return
+    demo = False
+    if a.demo:
+        demo = True
+    launch.launch(source=query, task=task, out_format=outformat,
+            span=span, demo=demo)
+
 if __name__ == '__main__':
     a = parser.parse_args()
-    launch_csd(a.query, a.span, outformat, out_name, span, demo)
+    launch_csd(a.query, a.contracts, a.products, a.xlsxout, a.jsonout,
+                a.name, a.span, a.demo)
