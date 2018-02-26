@@ -6,7 +6,6 @@ import csv
 import json
 import os
 from openpyxl import Workbook
-import downloader.settings as settings
 
 
 # parent = os.path.normpath(os.getcwd() + os.sep + os.pardir)
@@ -20,7 +19,6 @@ class JsonWriter():
             self.fname = os.path.join(PATH, DEFAULT_FNAME.format(daterange) + '.json')
         else:
             self.fname = os.path.join(PATH, outputname + '.json')
-        settings.OUTPUT_PATH += self.fname
         self.first = True
         self.handler = None
 
@@ -37,6 +35,9 @@ class JsonWriter():
     def stop(self):
         self.handler.write(']')
         self.handler.close()
+        
+    def get_outpath(self):
+        return self.fname
 
 
 class CsvWriter():
@@ -46,7 +47,6 @@ class CsvWriter():
             self.fname = os.path.join(PATH, DEFAULT_FNAME.format(daterange) + '.csv')
         else:
             self.fname = os.path.join(PATH, outputname + '.csv')
-        settings.OUTPUT_PATH += self.fname
         self.writer = None
         self.handler = None
         self.headers = headers
@@ -62,6 +62,9 @@ class CsvWriter():
     def stop(self):
         self.handler.close()
 
+    def get_outpath(self):
+        return self.fname
+
 
 class XlsxWriter():
 
@@ -70,7 +73,6 @@ class XlsxWriter():
             self.fname = os.path.join(PATH, DEFAULT_FNAME.format(daterange) + '.xlsx')
         else:
             self.fname = os.path.join(PATH, outputname + '.xlsx')
-        settings.OUTPUT_PATH += self.fname
         self.handler = None
         self.sheet = None
         self.headers = headers
@@ -92,6 +94,9 @@ class XlsxWriter():
 
     def stop(self):
         self.handler.save(filename=self.fname)
+
+    def get_outpath(self):
+        return self.fname
 
 
 if __name__ == '__main__':

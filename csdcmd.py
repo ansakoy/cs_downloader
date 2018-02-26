@@ -43,7 +43,7 @@ def launch_csd(query, contracts, products, jsonout, xlsxout, name,
     if a.jsonout:
         outformat= 'JSON'
     elif a.xlsxout:
-        out_format= 'XLSX'
+        outformat= 'XLSX'
     name = None
     if a.name:
         name = name

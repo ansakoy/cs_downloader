@@ -193,7 +193,7 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
                 writer.stop()
                 return response
         writer.stop()
-        return settings.DONE_MSG
+        return settings.DONE_MSG.format(writer.get_outpath())
     begin, end = drp.str_to_date(drange)
     ranges = drp.split_daterange(begin, end, span)
     too_many = 0
@@ -244,7 +244,7 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
         более короткий период дробления по временному дипапзону
         или использовать дополнительные параметры фильтрации
         (например, по региону заказчика или по ценовому диапазону).'''.format(span)
-    return settings.DONE_MSG + alert
+    return settings.DONE_MSG.format(writer.get_outpath())
 
 
 def get_query_info(api_query, drange, strategy, span):
