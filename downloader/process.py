@@ -271,8 +271,10 @@ def get_query_info(api_query, drange, strategy, span):
         if response == 'По этому запросу контрактов не найдено. Попробуйте задать другие параметры.':
             continue
         elif type(response) is str:
-            return respons
+            return response
         total = response['contracts']['total']
+        if total >= LIMIT:
+            too_many += 1
         num_contracts += total
     text = 'Найдено контрактов по запросу: {}'.format(num_contracts)
     alert = ''
