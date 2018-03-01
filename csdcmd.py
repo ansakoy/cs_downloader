@@ -44,15 +44,12 @@ def launch_csd(query, contracts, products, jsonout, xlsxout, name,
         outformat = 'JSON'
     elif a.xlsxout:
         outformat= 'XLSX'
-    # outname = None
-    # if a.name:
-    #     outname = name
     span = 30
     if a.span:
         try:
             span = int(a.span)
         except ValueError:
-            print('Используйте .')
+            print('Используйте целочисленные значения для span')
             return
     demo = False
     if a.demo:
