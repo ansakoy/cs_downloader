@@ -3,6 +3,7 @@
 задачи.
 '''
 import os
+import time
 
 import downloader.process as process
 import downloader.api_builder as api_builder
@@ -19,8 +20,15 @@ def get_query_info_text(params, daterange=None):
     return text
 
 
+def convert_running_time(value):
+    minutes, seconds = divmod(value, 60)
+    hours, minutes = divmod(minutes, 60)
+    return 'Время работы скрипта: %d:%02d:%02d' % (hours, minutes, seconds)
+
+
 def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
             demo=False):
+    start = time.time()
     if demo:
         # При demo=True используются параметры запроса по умолчанию [из settings].
         params = DEFAULT_PARAMS
@@ -41,7 +49,6 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
         return
     if not api_builder.has_valid_fields(params):
         print(WRONG_PARAMS_MSG)
-        return
 
     strategy = api_builder.choose_strategy(params)
     query_date = api_builder.build_query(strategy, params)
@@ -56,14 +63,20 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
 
     if task == 'INFO':
         print(process.get_query_info(api_base, daterange_str, strategy, span))
+        stop = time.time()
+        print(convert_running_time(stop - start))
         return
 
     elif task == 'BY_CONTRACT' or task == 'BY_PRODUCT':
         print(process.extract_data(api_base, daterange_str, strategy, out_format, out_name, span, task))
+        stop = time.time()
+        print(convert_running_time(stop - start))
         return
 
     else:
         print('Указана некорректная задача.')
+
+
 
 
 if __name__ == '__main__':
