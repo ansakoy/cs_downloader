@@ -188,7 +188,7 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
                             products = by_product(contract)
                             for product in products:
                                 writer.write(product)
-                time.sleep(6)
+                time.sleep(2)
             else:
                 writer.stop()
                 return response
@@ -231,7 +231,7 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
                         if products:
                             for product in products:
                                 writer.write(product)
-            time.sleep(6)
+            time.sleep(2)
     writer.stop()
     alert = ''
     if too_many > 0:

@@ -49,6 +49,7 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
         return
     if not api_builder.has_valid_fields(params):
         print(WRONG_PARAMS_MSG)
+        return
 
     strategy = api_builder.choose_strategy(params)
     query_date = api_builder.build_query(strategy, params)
