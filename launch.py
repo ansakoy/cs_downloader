@@ -64,19 +64,22 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
     print(query_info)
 
     if task == 'INFO':
-        print(process.get_query_info(api_base, daterange_str, strategy, span))
+        result = process.get_query_info(api_base, daterange_str, strategy, span)
+        print(result)
         stop = time.time()
         print(convert_running_time(stop - start))
-        return
+        return result
 
     elif task == 'BY_CONTRACT' or task == 'BY_PRODUCT':
-        print(process.extract_data(api_base, daterange_str, strategy, out_format, out_name, span, task))
+        result = process.extract_data(api_base, daterange_str, strategy, out_format, out_name, span, task)
+        print(result)
         stop = time.time()
         print(convert_running_time(stop - start))
-        return
+        return result
 
     else:
         print('Указана некорректная задача.')
+        return 'Указана некорректная задача.'
 
 
 
