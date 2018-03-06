@@ -41,7 +41,7 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
         params = process.get_params_from_csv(source)
     else:
         print(NO_PARAMS_MSG)
-        return
+        return NO_PARAMS_MSG
 
     # Если с параметрами что-то не в порядке
     if type(params) is str:
@@ -49,7 +49,7 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
         return
     if not api_builder.has_valid_fields(params):
         print(WRONG_PARAMS_MSG)
-        return
+        return WRONG_PARAMS_MSG
 
     strategy = api_builder.choose_strategy(params)
     query_date = api_builder.build_query(strategy, params)
@@ -60,7 +60,8 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
         begin, end = daterange_processor.get_default_daterange()
         daterange_str = daterange_processor.date_to_str(begin, end)
         date_for_output = daterange_str
-    print(get_query_info_text(params, date_for_output))
+    query_info = get_query_info_text(params, date_for_output)
+    print(query_info)
 
     if task == 'INFO':
         print(process.get_query_info(api_base, daterange_str, strategy, span))
