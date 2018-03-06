@@ -174,7 +174,7 @@ def add_span(bot, update, user_data):
 
 def launch_launch(bot, update, user_data):
     chat_id = update.message.chat_id
-    user_data[LAUNCH_TEXT] += 'Приступаю к выполнению. В зависимости от размера выгрузки операция может занять некоторое время.'
+    user_data[LAUNCH_TEXT] += 'Приступаю к выполнению. В зависимости от размера выгрузки операция может занять от нескольких секунд до нескольких часов.'
     bot.send_message(chat_id=chat_id, text=user_data[LAUNCH_TEXT])
     result = launch.launch(source=user_data.get(PARAMS_SOURCE),
                     task=user_data[TASK],
@@ -184,15 +184,15 @@ def launch_launch(bot, update, user_data):
                     demo=user_data[DEMO])
     if user_data.get(FNAME):
         f_path = os.path.join('data', user_data[FNAME] + user_data[EXTENSION])
+        print(f_path)
         bot.send_document(chat_id=chat_id, document=open(f_path, 'r'))
         os.remove(f_path)
     bot.send_message(chat_id=chat_id, text=result)
     user_data.clear()
 
 
-#
-# def sos(bot, update):
-#     pass
+def sos(bot, update):
+    pass
 
 
 def main():
