@@ -15,7 +15,6 @@ SPAN = 'span'
 DEMO = 'demo'
 UPLOAD = 'upload'
 LAUNCH = 'launch'
-PARAMS_UPLOADED = 'params_uploaded'
 LAUNCH_TEXT = 'launch_text'
 FNAME = 'fname'
 OUTF = 'outf'
@@ -120,11 +119,14 @@ def upload(bot, update, user_data):
     chat_id = update.message.chat_id
     received_file = bot.getFile(update.message.document.file_id)
     print(received_file)
-    params_name = 'params_{}.csv'.format(chat_id)
-    received_file.download(os.path.join('params', params_name))
-    update.message.reply_text("Выберите задачу", reply_markup=markup_task)
-    user_data[PARAMS_SOURCE] = os.path.join('params', params_name)
-    return DIALOGUE[TASK]
+    if received_file['file_path'].endswith('.csv'):
+        params_name = 'params_{}.csv'.format(chat_id)
+        received_file.download(os.path.join('params', params_name))
+        update.message.reply_text("Выберите задачу", reply_markup=markup_task)
+        user_data[PARAMS_SOURCE] = os.path.join('params', params_name)
+        return DIALOGUE[TASK]
+    update.message.reply_text("Неверный формат файла. Пришлите файл CSV с параметрами.")
+    return DIALOGUE[UPLOAD]
 
 
 def task(bot, update, user_data):
@@ -160,8 +162,8 @@ def add_span(bot, update, user_data):
         return ConversationHandler.END
     elif choice == CANCEL:
         update.message.reply_text('Задача снята.')
-        if not user_data[DEMO]:
-            os.remove(os.path.join('params', 'params_telebot.csv'))
+        if user_data.get(PARAMS_SOURCE):
+            os.remove(user_data[PARAMS_SOURCE])
         return ConversationHandler.END
     span = process_span(choice)
     if type(span) is str:
@@ -188,6 +190,7 @@ def launch_launch(bot, update, user_data):
         print('f_path:', f_path, os.path.isfile(f_path))
         bot.send_document(chat_id=chat_id, document=open(f_path, 'rb'))
         os.remove(f_path)
+        os.remove(user_data[PARAMS_SOURCE])
     bot.send_message(chat_id=chat_id, text=result)
     user_data.clear()
 
