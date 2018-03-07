@@ -110,21 +110,20 @@ def mode(bot, update, user_data):
     print(user_data[LAUNCH_TEXT])
     if is_demo(mode):
         update.message.reply_text("Выберите задачу", reply_markup=markup_task)
-        print(DIALOGUE[TASK])
         return DIALOGUE[TASK]
+    print('UPLOAD')
+    update.message.reply_text("Пришлите файл CSV с параметрами")
     return DIALOGUE[UPLOAD]
 
 
 def upload(bot, update, user_data):
-    if not (NORMAL_MODE and PARAMS_UPLOADED):
-        update.message.reply_text("Пришлите файл CSV с параметрами")
-        received_file = bot.getFile(update.message.document.file_id)
-        if received_file:
-            PARAMS_UPLOADED = True
-        received_file.download(os.path.join('params', 'params_telebot.csv'))
-        return DIALOGUE[UPLOAD]
+    chat_id = update.message.chat_id
+    received_file = bot.getFile(update.message.document.file_id)
+    print(received_file)
+    params_name = 'params_{}.csv'.format(chat_id)
+    received_file.download(os.path.join('params', params_name))
     update.message.reply_text("Выберите задачу", reply_markup=markup_task)
-    user_data[PARAMS_SOURCE] = os.path.join('params', 'params_telebot.csv')
+    user_data[PARAMS_SOURCE] = os.path.join('params', params_name)
     return DIALOGUE[TASK]
 
 
@@ -211,6 +210,7 @@ def sos(bot, update):
         - одна строка таблицы - один продукт.
         Подробнее с документацией можно ознакомиться здесь:
         ССЫЛКА!
+        Чтобы запустить бот, наберите /start.
     '''
     bot.send_message(chat_id=chat_id, text=text)
 
