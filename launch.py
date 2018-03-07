@@ -46,7 +46,7 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
     # Если с параметрами что-то не в порядке
     if type(params) is str:
         print(params)
-        return
+        return params
     if not api_builder.has_valid_fields(params):
         print(WRONG_PARAMS_MSG)
         return WRONG_PARAMS_MSG

@@ -72,18 +72,18 @@ def get_params_from_csv(source):
         return alert
 
 
-def make_default_json_from_csv():
-    params_dict = dict()
-    with open(DEFAULT_CSV, 'r', encoding='utf-8') as handler:
-        reader = csv.reader(handler)
-        for row in reader:
-            descr, param, val = row
-            if len(val) < 1:
-                params_dict[param] = None
-            else:
-                params_dict[param] = val
-    with open(DEFAULT_JSON, 'w') as handler:
-        json.dump(params_dict, handler)
+# def make_default_json_from_csv():
+#     params_dict = dict()
+#     with open(DEFAULT_CSV, 'r', encoding='utf-8') as handler:
+#         reader = csv.reader(handler)
+#         for row in reader:
+#             descr, param, val = row
+#             if len(val) < 1:
+#                 params_dict[param] = None
+#             else:
+#                 params_dict[param] = val
+#     with open(DEFAULT_JSON, 'w') as handler:
+#         json.dump(params_dict, handler)
 
 
 def get_response_from_api(url):
@@ -193,7 +193,8 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
                 writer.stop()
                 return response
         writer.stop()
-        return settings.DONE_MSG.format(writer.get_outpath())
+        print(settings.DONE_MSG.format(writer.get_outpath()))
+        return settings.DONE_MSG.format('')
     begin, end = drp.str_to_date(drange)
     ranges = drp.split_daterange(begin, end, span)
     too_many = 0
@@ -237,7 +238,8 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
     if too_many > 0:
         alert = '''\n
         По этому запросу установлено искусственное ограничение на выдачу: не более 500 контрактов. Мы попытались раздробить запрос на части, разбив заданный временной диапазон на периоды по {} дней. Но для некоторых периодов число контрактов в выдаче все равно достигало 500. Чтобы обогнуть ограничение, вы можете указать более короткий период дробления по временному дипапзону или использовать дополнительные параметры фильтрации (например, по региону заказчика или по ценовому диапазону).'''.format(span)
-    return settings.DONE_MSG.format(writer.get_outpath())
+    print(settings.DONE_MSG.format(writer.get_outpath()))
+    return settings.DONE_MSG.format('')
 
 
 def get_query_info(api_query, drange, strategy, span):
@@ -269,7 +271,8 @@ def get_query_info(api_query, drange, strategy, span):
         if total >= LIMIT:
             too_many += 1
         num_contracts += total
-    text = 'Найдено контрактов по запросу: {}'.format(num_contracts)
+    text = 'Найдено контрактов по запросу: {}\n'.format(num_contracts)
+    text += 'Ожидаемое время выгрузки: около {} минут'.format(num_contracts / 1000.0)
     alert = ''
     if too_many > 0:
         alert = '''\n

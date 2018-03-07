@@ -5,7 +5,9 @@ from telegram import ReplyKeyboardMarkup, KeyboardButton
 
 from csdbot_token import TOKEN
 import launch
+import downloader.api_builder as api_builder
 import downloader.settings as settings
+import downloader.process as process
 
 # USER_DATA FIELDS
 MODE_CHOICE = 'mode_choice'
@@ -86,6 +88,18 @@ def get_fextension(choice):
     elif choice == JSON:
         return '.json'
     return '.csv'
+
+
+def process_params(file_location=None, demo=False):
+    if demo:
+        params = settings.DEFAULT_PARAMS
+    else:
+        params = process(file_location)
+    if not api_builder.has_valid_fields(params):
+        return settings.WRONG_PARAMS_MSG
+    
+
+
 
 
 # def doc_handler(bot, update):
@@ -235,8 +249,6 @@ def main():
                         4: [RegexHandler('^(Запуск|Снять задачу|[0-9]+)$', add_span, pass_user_data=True)]},
                 fallbacks=[start_handler],
                 allow_reentry=True)
-    # dispatcher.add_handler(MessageHandler(Filters.document, doc_handler))
-    # dispatcher.add_handler(start_handler)
     dispatcher.add_handler(conversation_handler)
     dispatcher.add_handler(help_handler)
     updater.start_polling()
