@@ -167,13 +167,13 @@ def add_span(bot, update, user_data):
             os.remove(user_data[PARAMS_SOURCE])
         return ConversationHandler.END
     span = process_span(choice)
-    print(span, type(span))
     if type(span) is str:
         update.message.reply_text(span)
         return DIALOGUE[SPAN]
     user_data['span'] = span
     user_data[LAUNCH_TEXT] += 'Длина подпериодов (в днях): {}\n'.format(span)
-    launch_launch(bot, update, user_data)
+    update.message.reply_text("Теперь можно запустить скрипт или отказаться от запуска", reply_markup=markup_launch)
+    return DIALOGUE[SPAN]
 
 
 def launch_launch(bot, update, user_data):
@@ -188,9 +188,9 @@ def launch_launch(bot, update, user_data):
                     demo=user_data[DEMO])
     if user_data.get(FNAME):
         f_path = os.path.join('data', user_data[FNAME] + user_data[EXTENSION])
-        print('f_path:', f_path, os.path.isfile(f_path))
         bot.send_document(chat_id=chat_id, document=open(f_path, 'rb'))
         os.remove(f_path)
+    if user_data.get(PARAMS_SOURCE):
         os.remove(user_data[PARAMS_SOURCE])
     bot.send_message(chat_id=chat_id, text=result)
     user_data.clear()
@@ -215,6 +215,8 @@ def sos(bot, update):
         Подробнее с документацией можно ознакомиться здесь:
         ССЫЛКА!
         Чтобы запустить бот, наберите /start.
+        Чтобы протестировать его работу с параметрами запроса по умолчанию, используйте режим "Демо".
+        Чтобы задать свои параметры запроса, необходимо использовать файл CSV (см. инструкцию: ССЫЛКА!)
     '''
     bot.send_message(chat_id=chat_id, text=text)
 
