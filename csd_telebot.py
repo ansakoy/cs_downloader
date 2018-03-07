@@ -157,6 +157,7 @@ def outformat(bot, update, user_data):
 
 def add_span(bot, update, user_data):
     choice = update.message.text
+    print(choice)
     if choice == START:
         launch_launch(bot, update, user_data)
         return ConversationHandler.END
@@ -166,6 +167,7 @@ def add_span(bot, update, user_data):
             os.remove(user_data[PARAMS_SOURCE])
         return ConversationHandler.END
     span = process_span(choice)
+    print(span, type(span))
     if type(span) is str:
         update.message.reply_text(span)
         return DIALOGUE[SPAN]
@@ -184,7 +186,6 @@ def launch_launch(bot, update, user_data):
                     span=user_data.get(SPAN, 30),
                     out_name=user_data.get(FNAME),
                     demo=user_data[DEMO])
-    print('result:', result)
     if user_data.get(FNAME):
         f_path = os.path.join('data', user_data[FNAME] + user_data[EXTENSION])
         print('f_path:', f_path, os.path.isfile(f_path))
@@ -229,7 +230,7 @@ def main():
                         1: [MessageHandler(Filters.document, upload, pass_user_data=True)],
                         2: [RegexHandler('^(ИНФО|По контрактам|По продуктам)$', task, pass_user_data=True)],
                         3: [RegexHandler('^(CSV|XLSX|JSON)$', outformat, pass_user_data=True)],
-                        4: [RegexHandler('^(Запуск|Снять задачу|.)$', add_span, pass_user_data=True)]},
+                        4: [RegexHandler('^(Запуск|Снять задачу|[0-9]+)$', add_span, pass_user_data=True)]},
                 fallbacks=[start_handler],
                 allow_reentry=True)
     # dispatcher.add_handler(MessageHandler(Filters.document, doc_handler))
