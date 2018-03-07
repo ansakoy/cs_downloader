@@ -174,14 +174,17 @@ def add_span(bot, update, user_data):
 
 def launch_launch(bot, update, user_data):
     chat_id = update.message.chat_id
-    user_data[LAUNCH_TEXT] += 'Приступаю к выполнению. В зависимости от размера выгрузки операция может занять от нескольких секунд до нескольких часов.'
+    user_data[LAUNCH_TEXT] += 'Приступаю к выполнению. В зависимости от объема задачи операция может занять от нескольких секунд до нескольких часов.'
     bot.send_message(chat_id=chat_id, text=user_data[LAUNCH_TEXT])
+    if user_data.get(FNAME):
+        print(user_data[FNAME])
     result = launch.launch(source=user_data.get(PARAMS_SOURCE),
                     task=user_data[TASK],
                     out_format=user_data.get(OUTF, 'CSV'),
                     span=user_data.get(SPAN, 30),
                     out_name=user_data.get(FNAME),
                     demo=user_data[DEMO])
+    print('hello world')
     if user_data.get(FNAME):
         f_path = os.path.join('data', user_data[FNAME] + user_data[EXTENSION])
         print(f_path)
@@ -192,13 +195,32 @@ def launch_launch(bot, update, user_data):
 
 
 def sos(bot, update):
-    pass
+    chat_id = update.message.chat_id
+    text = '''
+        Этот бот позволяет выгружать информацию о контрактах, заключенных по 94-ФЗ, 44-ФЗ и 223-ФЗ, через API проекта "Госзатраты" (clearspendng.ru).
+        Также он позволяет получать следующую информацию о запросе:
+        - Есть ли в принципе отвечающие запросы контракты;
+        - Если есть, то сколько их;
+        - Предупреждение, если запрос не позволяет выдать выгрузить все контракты из-за технических ограничений.
+        Возможные форматы выгрузки:
+        - CSV;
+        - XLSX;
+        - JSON.
+        В формате JSON выгружаются все имеющиеся данные о контрактах.
+        В остальных форматах выгружаются только некоторые поля. В зависимости от потребностей пользователя выгрузка может производиться в двух режимах:
+        - одна строка таблицы - один контракт;
+        - одна строка таблицы - один продукт.
+        Подробнее с документацией можно ознакомиться здесь:
+        ССЫЛКА!
+    '''
+    bot.send_message(chat_id=chat_id, text=text)
 
 
 def main():
     updater = Updater(token=TOKEN)
     dispatcher = updater.dispatcher
     start_handler = CommandHandler('start', start)
+    help_handler = CommandHandler('help', sos)
     conversation_handler = ConversationHandler(
                 entry_points=[start_handler],
                 states={0: [RegexHandler('^(Демо|Обычный)$', mode, pass_user_data=True)],
@@ -211,6 +233,7 @@ def main():
     # dispatcher.add_handler(MessageHandler(Filters.document, doc_handler))
     # dispatcher.add_handler(start_handler)
     dispatcher.add_handler(conversation_handler)
+    dispatcher.add_handler(help_handler)
     updater.start_polling()
     updater.idle()
 
