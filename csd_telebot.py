@@ -8,6 +8,7 @@ import launch
 import downloader.api_builder as api_builder
 import downloader.settings as settings
 import downloader.process as process
+import downloader.daterange_processor as daterange_processor
 
 # USER_DATA FIELDS
 MODE_CHOICE = 'mode_choice'
@@ -34,6 +35,9 @@ XLSX = 'XLSX'
 JSON = 'JSON'
 START = 'Запуск'
 CANCEL = 'Снять задачу'
+
+
+DATERANGE = 'daterange'
 
 
 keyboard_mode = [[KeyboardButton(text=DEMO_MODE),
@@ -97,7 +101,17 @@ def process_params(file_location=None, demo=False):
         params = process(file_location)
     if not api_builder.has_valid_fields(params):
         return settings.WRONG_PARAMS_MSG
-    
+    if not params.get(DATERANGE):
+        default = daterange_processor.get_default_daterange()
+        daterange = daterange_processor.date_to_str(default)
+        query_info = launch.get_query_info_text(params, daterange)
+        return query_info
+    query_info = launch.get_query_info_text(params)
+    return query_info
+
+
+
+
 
 
 
