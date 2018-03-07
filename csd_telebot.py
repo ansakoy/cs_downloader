@@ -5,6 +5,7 @@ from telegram import ReplyKeyboardMarkup, KeyboardButton
 
 from csdbot_token import TOKEN
 import launch
+import downloader.settings as settings
 
 # USER_DATA FIELDS
 MODE_CHOICE = 'mode_choice'
@@ -176,19 +177,17 @@ def launch_launch(bot, update, user_data):
     chat_id = update.message.chat_id
     user_data[LAUNCH_TEXT] += 'Приступаю к выполнению. В зависимости от объема задачи операция может занять от нескольких секунд до нескольких часов.'
     bot.send_message(chat_id=chat_id, text=user_data[LAUNCH_TEXT])
-    if user_data.get(FNAME):
-        print(user_data[FNAME])
     result = launch.launch(source=user_data.get(PARAMS_SOURCE),
                     task=user_data[TASK],
                     out_format=user_data.get(OUTF, 'CSV'),
                     span=user_data.get(SPAN, 30),
                     out_name=user_data.get(FNAME),
                     demo=user_data[DEMO])
-    print('hello world')
+    print('result:', result)
     if user_data.get(FNAME):
         f_path = os.path.join('data', user_data[FNAME] + user_data[EXTENSION])
-        print(f_path)
-        bot.send_document(chat_id=chat_id, document=open(f_path, 'r'))
+        print('f_path:', f_path, os.path.isfile(f_path))
+        bot.send_document(chat_id=chat_id, document=open(f_path, 'rb'))
         os.remove(f_path)
     bot.send_message(chat_id=chat_id, text=result)
     user_data.clear()
