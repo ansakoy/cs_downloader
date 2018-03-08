@@ -68,20 +68,18 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
         print(result)
         stop = time.time()
         print(convert_running_time(stop - start))
-        return result
+        return result + '\n' + convert_running_time(stop - start)
 
     elif task == 'BY_CONTRACT' or task == 'BY_PRODUCT':
         result = process.extract_data(api_base, daterange_str, strategy, out_format, out_name, span, task)
         print(result)
         stop = time.time()
         print(convert_running_time(stop - start))
-        return result
+        return result + '\n' + convert_running_time(stop - start)
 
     else:
         print('Указана некорректная задача.')
         return 'Указана некорректная задача.'
-
-
 
 
 if __name__ == '__main__':

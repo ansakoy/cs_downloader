@@ -19,6 +19,7 @@ DEMO = 'demo'
 UPLOAD = 'upload'
 LAUNCH = 'launch'
 LAUNCH_TEXT = 'launch_text'
+PARAMS_TEXT = 'params_text'
 FNAME = 'fname'
 OUTF = 'outf'
 EXTENSION = 'extension'
@@ -98,7 +99,7 @@ def process_params(file_location=None, demo=False):
     if demo:
         params = settings.DEFAULT_PARAMS
     else:
-        params = process(file_location)
+        params = process.get_params_from_csv(file_location)
     if not api_builder.has_valid_fields(params):
         return settings.WRONG_PARAMS_MSG
     if not params.get(DATERANGE):
@@ -108,12 +109,6 @@ def process_params(file_location=None, demo=False):
         return query_info
     query_info = launch.get_query_info_text(params)
     return query_info
-
-
-
-
-
-
 
 
 # def doc_handler(bot, update):
@@ -132,11 +127,12 @@ def start(bot, update):
 def mode(bot, update, user_data):
     mode = update.message.text
     user_data[DEMO] = is_demo(mode)
-    user_data[LAUNCH_TEXT] = 'ПАРАМЕТРЫ ОПЕРАЦИИ:\n'
+    user_data[LAUNCH_TEXT] = 'Параметры операции:\n'
     user_data[LAUNCH_TEXT] += 'Режим: {}\n'.format(mode)
     print(user_data[LAUNCH_TEXT])
     if is_demo(mode):
         update.message.reply_text("Выберите задачу", reply_markup=markup_task)
+        user_data[PARAMS_TEXT] = process_params(demo=True)
         return DIALOGUE[TASK]
     print('UPLOAD')
     update.message.reply_text("Пришлите файл CSV с параметрами")
@@ -150,8 +146,16 @@ def upload(bot, update, user_data):
     if received_file['file_path'].endswith('.csv'):
         params_name = 'params_{}.csv'.format(chat_id)
         received_file.download(os.path.join('params', params_name))
+        user_data[PARAMS_SOURCE] = os.path.join('params', params_name)
+        print('user_data[PARAMS_SOURCE]', user_data[PARAMS_SOURCE])
+        check = process_params(file_location=user_data[PARAMS_SOURCE])
+        print(check)
+        if check == settings.WRONG_PARAMS_MSG:
+            update.message.reply_text(check + 'Попробуйте исправить заполнение параметров и пришлите файл снова.')
+            return DIALOGUE[UPLOAD]
         update.message.reply_text("Выберите задачу", reply_markup=markup_task)
         user_data[PARAMS_SOURCE] = os.path.join('params', params_name)
+        user_data[PARAMS_TEXT] = check
         return DIALOGUE[TASK]
     update.message.reply_text("Неверный формат файла. Пришлите файл CSV с параметрами.")
     return DIALOGUE[UPLOAD]
@@ -164,11 +168,9 @@ def task(bot, update, user_data):
     if task == PROD or task == CONTR:
         user_data[FNAME] = '{}'.format(update.message.chat_id)
         user_data[LAUNCH_TEXT] += 'Задача: выгрузка "{}"\n'.format(task)
-        print(user_data[LAUNCH_TEXT])
         update.message.reply_text("Выберите формат файла", reply_markup=markup_ext)
         return DIALOGUE[EXT]
     user_data[LAUNCH_TEXT] += 'Задача: Вывести информацию о запросе\n'
-    print(user_data[LAUNCH_TEXT])
     update.message.reply_text('Вы можете указать число дней в подпериодах, на которые может быть разбит период для дробления запроса. Число дней указывается целым числом. Если вы не хотите указывать этот параметр, просто нажмите кнопку "Запуск"', reply_markup=markup_launch)
     return DIALOGUE[SPAN]
 
@@ -206,7 +208,9 @@ def add_span(bot, update, user_data):
 
 def launch_launch(bot, update, user_data):
     chat_id = update.message.chat_id
-    user_data[LAUNCH_TEXT] += 'Приступаю к выполнению. В зависимости от объема задачи операция может занять от нескольких секунд до нескольких часов.'
+    # bot.send_message(chat_id=chat_id, text=user_data[PARAMS_TEXT])
+    user_data[LAUNCH_TEXT] += '\n' + user_data[PARAMS_TEXT]
+    user_data[LAUNCH_TEXT] += '\n\nПриступаю к выполнению. В зависимости от объема задачи операция может занять от нескольких секунд до нескольких часов.'
     bot.send_message(chat_id=chat_id, text=user_data[LAUNCH_TEXT])
     result = launch.launch(source=user_data.get(PARAMS_SOURCE),
                     task=user_data[TASK],

@@ -252,7 +252,9 @@ def get_query_info(api_query, drange, strategy, span):
         response = get_response_from_api(url_all_period)
         if type(response) is not str:
             num_contracts = response['contracts']['total']
-            return 'Найдено контрактов по запросу: {}'.format(num_contracts)
+            text = 'Найдено контрактов по запросу: {}'.format(num_contracts)
+            text += '\nОжидаемое время выгрузки: около {} минут(ы)'.format(round(num_contracts / 1000.0))
+            return text
         return response
     begin, end = drp.str_to_date(drange)
     ranges = drp.split_daterange(begin, end, span)
@@ -272,7 +274,8 @@ def get_query_info(api_query, drange, strategy, span):
             too_many += 1
         num_contracts += total
     text = 'Найдено контрактов по запросу: {}\n'.format(num_contracts)
-    text += 'Ожидаемое время выгрузки: около {} минут'.format(num_contracts / 1000.0)
+    text += '\nОжидаемое время выгрузки: около {} минут(ы)'.format(round(num_contracts / 1000.0))
+    print(text)
     alert = ''
     if too_many > 0:
         alert = '''\n
