@@ -111,14 +111,6 @@ def process_params(file_location=None, demo=False):
     return query_info
 
 
-# def doc_handler(bot, update):
-#     print('worked')
-#     received_file = bot.getFile(update.message.document.file_id)
-#     print("file_id: " + str(update.message.document.file_id))
-#     received_file.download('params/params_csv.csv')
-#     PARAMS_UPLOADED = True
-
-
 def start(bot, update):
     update.message.reply_text("Выберите режим", reply_markup=markup_mode)
     return DIALOGUE[MODE_CHOICE]
@@ -129,12 +121,10 @@ def mode(bot, update, user_data):
     user_data[DEMO] = is_demo(mode)
     user_data[LAUNCH_TEXT] = 'Параметры операции:\n'
     user_data[LAUNCH_TEXT] += 'Режим: {}\n'.format(mode)
-    print(user_data[LAUNCH_TEXT])
     if is_demo(mode):
         update.message.reply_text("Выберите задачу", reply_markup=markup_task)
         user_data[PARAMS_TEXT] = process_params(demo=True)
         return DIALOGUE[TASK]
-    print('UPLOAD')
     update.message.reply_text("Пришлите файл CSV с параметрами")
     return DIALOGUE[UPLOAD]
 
@@ -147,9 +137,7 @@ def upload(bot, update, user_data):
         params_name = 'params_{}.csv'.format(chat_id)
         received_file.download(os.path.join('params', params_name))
         user_data[PARAMS_SOURCE] = os.path.join('params', params_name)
-        print('user_data[PARAMS_SOURCE]', user_data[PARAMS_SOURCE])
         check = process_params(file_location=user_data[PARAMS_SOURCE])
-        print(check)
         if check == settings.WRONG_PARAMS_MSG:
             update.message.reply_text(check + 'Попробуйте исправить заполнение параметров и пришлите файл снова.')
             return DIALOGUE[UPLOAD]
@@ -164,7 +152,6 @@ def upload(bot, update, user_data):
 def task(bot, update, user_data):
     task = update.message.text
     user_data[TASK] = get_task_code(task)
-    print(task)
     if task == PROD or task == CONTR:
         user_data[FNAME] = '{}'.format(update.message.chat_id)
         user_data[LAUNCH_TEXT] += 'Задача: выгрузка "{}"\n'.format(task)

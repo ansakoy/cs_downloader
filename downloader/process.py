@@ -194,7 +194,7 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
                 return response
         writer.stop()
         print(settings.DONE_MSG.format(writer.get_outpath()))
-        return settings.DONE_MSG.format('')
+        return 'Готово.'
     begin, end = drp.str_to_date(drange)
     ranges = drp.split_daterange(begin, end, span)
     too_many = 0
@@ -239,7 +239,7 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
         alert = '''\n
         По этому запросу установлено искусственное ограничение на выдачу: не более 500 контрактов. Мы попытались раздробить запрос на части, разбив заданный временной диапазон на периоды по {} дней. Но для некоторых периодов число контрактов в выдаче все равно достигало 500. Чтобы обогнуть ограничение, вы можете указать более короткий период дробления по временному дипапзону или использовать дополнительные параметры фильтрации (например, по региону заказчика или по ценовому диапазону).'''.format(span)
     print(settings.DONE_MSG.format(writer.get_outpath()))
-    return settings.DONE_MSG.format('')
+    return 'Готово'
 
 
 def get_query_info(api_query, drange, strategy, span):
