@@ -9,9 +9,6 @@ setup(
     author_email='ansakoy@gmail.com',
     install_requires=['openpyxl', 'python-telegram-bot', 'requests'],
     packages=['downloader'],
-    entry_points = {
-        'console_scripts': ['csd=.csdcmd:main']
-    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Programming Language :: Python :: 3.4',
