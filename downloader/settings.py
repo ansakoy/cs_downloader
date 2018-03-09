@@ -33,4 +33,4 @@ PARAMS_DIR = 'params'
 PARAMS_FILE = 'params.csv'
 
 # Результат
-DONE_MSG = 'Готово. Путь к сохраненному файлу: {}'
+DONE_MSG = 'Путь к сохраненному файлу: {}'

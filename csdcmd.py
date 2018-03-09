@@ -58,10 +58,7 @@ def launch_csd(query, contracts, products, jsonout, xlsxout, name,
             out_name=a.name,
             span=span, demo=demo)
 
-def main():
-    a = parser.parse_args()
-    launch_csd(a.query, a.contracts, a.products, a.xlsxout, a.jsonout, a.name, a.span, a.demo)
-
 
 if __name__ == '__main__':
-    main()
+    a = parser.parse_args()
+    launch_csd(a.query, a.contracts, a.products, a.xlsxout, a.jsonout, a.name, a.span, a.demo)
