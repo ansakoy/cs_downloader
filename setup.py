@@ -19,6 +19,7 @@ setup(
         'Intended Audience :: Science/Research',
         'Operating System :: OS Independent',
         'Topic :: Software Development :: User Interfaces',
-        'Topic :: Database :: Front-Ends'
+        'Topic :: Database :: Front-Ends',
+        'License :: OSI Approved :: MIT License'
     ]
 )
