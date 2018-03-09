@@ -10,7 +10,7 @@ setup(
     install_requires=['openpyxl', 'python-telegram-bot', 'requests'],
     packages=['downloader'],
     entry_points = {
-        'console_scripts': [csd=csdcmd:main]
+        'console_scripts': ['csd=csdcmd:main']
     },
     classifiers=[
         'Development Status :: 3 - Alpha',
