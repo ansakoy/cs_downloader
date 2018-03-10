@@ -3,6 +3,8 @@ import os
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, ConversationHandler, RegexHandler
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 
+import logging
+
 from csdbot_token import TOKEN
 import launch
 import downloader.api_builder as api_builder
@@ -39,6 +41,11 @@ CANCEL = 'Снять задачу'
 
 
 DATERANGE = 'daterange'
+
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 
 keyboard_mode = [[KeyboardButton(text=DEMO_MODE),
@@ -111,6 +118,23 @@ def process_params(file_location=None, demo=False):
     return query_info
 
 
+def get_filename(chat_id):
+    data_files = os.listdir('data')
+    print(data_files)
+    max_val = -1
+    for entry in data_files:
+        if entry.startswith(str(chat_id)):
+            num = int(entry.split('.')[0].split('_')[1])
+            if num > max_val:
+                max_val = num
+    return str(chat_id) + '_' + str(max_val + 1)
+
+
+def error(bot, update, error):
+    """Log Errors caused by Updates."""
+    logger.warning('Update "%s" caused error "%s"', update, error)
+
+
 def start(bot, update):
     update.message.reply_text("Выберите режим", reply_markup=markup_mode)
     return DIALOGUE[MODE_CHOICE]
@@ -153,7 +177,8 @@ def task(bot, update, user_data):
     task = update.message.text
     user_data[TASK] = get_task_code(task)
     if task == PROD or task == CONTR:
-        user_data[FNAME] = '{}'.format(update.message.chat_id)
+        user_data[FNAME] = get_filename(update.message.chat_id)
+        print(user_data[FNAME])
         user_data[LAUNCH_TEXT] += 'Задача: выгрузка "{}"\n'.format(task)
         update.message.reply_text("Выберите формат файла", reply_markup=markup_ext)
         return DIALOGUE[EXT]
@@ -256,6 +281,7 @@ def main():
                 allow_reentry=True)
     dispatcher.add_handler(conversation_handler)
     dispatcher.add_handler(help_handler)
+    dp.add_error_handler(error)
     updater.start_polling()
     updater.idle()
 
