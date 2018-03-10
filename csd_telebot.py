@@ -120,7 +120,6 @@ def process_params(file_location=None, demo=False):
 
 def get_filename(chat_id):
     data_files = os.listdir('data')
-    print(data_files)
     max_val = -1
     for entry in data_files:
         if entry.startswith(str(chat_id)):
@@ -178,7 +177,6 @@ def task(bot, update, user_data):
     user_data[TASK] = get_task_code(task)
     if task == PROD or task == CONTR:
         user_data[FNAME] = get_filename(update.message.chat_id)
-        print(user_data[FNAME])
         user_data[LAUNCH_TEXT] += 'Задача: выгрузка "{}"\n'.format(task)
         update.message.reply_text("Выберите формат файла", reply_markup=markup_ext)
         return DIALOGUE[EXT]
@@ -281,7 +279,7 @@ def main():
                 allow_reentry=True)
     dispatcher.add_handler(conversation_handler)
     dispatcher.add_handler(help_handler)
-    dp.add_error_handler(error)
+    dispatcher.add_error_handler(error)
     updater.start_polling()
     updater.idle()
 
