@@ -275,7 +275,7 @@ def get_query_info(api_query, drange, strategy, span):
         num_contracts += total
     text = 'Найдено контрактов по запросу: {}\n'.format(num_contracts)
     text += '\nОжидаемое время выгрузки: около {} минут(ы)'.format(round(num_contracts / 1000.0))
-    print(text)
+    # print(text)
     alert = ''
     if too_many > 0:
         alert = '''\n
