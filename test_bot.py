@@ -1,7 +1,12 @@
 import time
+from sys import argv
 
 
-def test_bot(bot, sleep, chat_id):
+def test_bot(sleep):
     time.sleep(int(sleep))
     message = 'slept for %s seconds' % sleep
-    bot.send_message(chat_id=chat_id, text=message)
+    print(message)
+
+
+if __name__ == '__main__':
+    test_bot(argv[1])

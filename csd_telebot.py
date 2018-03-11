@@ -1,4 +1,5 @@
 import os
+import json
 
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, ConversationHandler, RegexHandler
 from telegram import ReplyKeyboardMarkup, KeyboardButton
@@ -82,6 +83,14 @@ DIALOGUE = {MODE_CHOICE: 0,
                 SPAN: 5}
 
 
+def dump_json(dictionary, json_file):
+
+    # Записать словарь в виде файла json
+
+    with open(json_file, 'w', encoding='utf-8') as handler:
+        json.dump(dictionary, handler, ensure_ascii=False)
+
+
 def is_demo(choice):
     return choice == DEMO_MODE
 
@@ -147,6 +156,7 @@ def start(bot, update):
     return DIALOGUE[MODE_CHOICE]
 
 import test_bot
+from threading import Thread
 
 
 def test(bot, update):
@@ -159,8 +169,9 @@ def test_test(bot, update, user_data):
     print(chat_id)
     sec = update.message.text
     print(sec)
-    print(type(bot))
-    test_bot.test_bot(bot, sec, chat_id)
+
+def thread_launch(sec):
+    os.system('python test_bot.py {}'.format(sec))
 
 
 def mode(bot, update, user_data):
@@ -225,8 +236,8 @@ def task(bot, update, user_data):
         user_data.clear()
         return ConversationHandler.END
     user_data[LAUNCH_TEXT] += 'Задача: Вывести информацию о запросе\n'
-    update.message.reply_text('Вы можете указать число дней в подпериодах, на которые может быть разбит период для дробления запроса. Число дней указывается целым числом. Если вы не хотите указывать этот параметр, просто нажмите кнопку "Запуск"', reply_markup=markup_launch)
-    return DIALOGUE[SPAN]
+    update.message.reply_text('Укажите адрес электронной почты, куда будет отправлен выгруженный файл', reply_markup=markup_cancel)
+    return DIALOGUE[EMAIL]
 
 
 def outformat(bot, update, user_data):
@@ -256,7 +267,7 @@ def email(bot, update, user_data):
         user_data.clear()
         return ConversationHandler.END
     user_data[EMAIL] = email
-    print(user_data[EMAIL])
+    # print(user_data[EMAIL])
     update.message.reply_text("Вы можете указать число дней в подпериодах, на которые может быть разбит период для дробления запроса. Число дней указывается целым числом. Если вы не хотите указывать этот параметр, просто нажмите кнопку 'Запуск'", reply_markup=markup_launch)
     return DIALOGUE[SPAN]
 
@@ -303,6 +314,16 @@ def launch_launch(bot, update, user_data):
         os.remove(user_data[PARAMS_SOURCE])
     bot.send_message(chat_id=chat_id, text=result)
     user_data.clear()
+
+
+def redirect_to_launch(bot, update, user_data):
+    chat_id = update.message.chat_id
+    msg = 'Скрипт запущен. В зависимости от объема задачи операция может занять от нескольких секунд до нескольких часов. Результат будет отправлен по адресу {}'.format(user_data[EMAIL])
+    bot.send_message(chat_id=chat_id, text=msg)
+    usrdata_path = os.path.join('usrdata', 'usrdata{}.json'.format(chat_id))
+    dump_json(user_data, usrdata_path)
+    user_data.clear()
+    os.system('python emailscript.py')
 
 
 def sos(bot, update):
