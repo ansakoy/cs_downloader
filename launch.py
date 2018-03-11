@@ -4,7 +4,6 @@
 '''
 import os
 import time
-from telegram.ext import Updater
 
 import downloader.process as process
 import downloader.api_builder as api_builder

@@ -26,6 +26,7 @@ FNAME = 'fname'
 OUTF = 'outf'
 EXTENSION = 'extension'
 PARAMS_SOURCE = 'params_source'
+EMAIL = 'email'
 
 # Значения клавиатуры
 DEMO_MODE = 'Демо'
@@ -49,18 +50,24 @@ logger = logging.getLogger(__name__)
 
 
 keyboard_mode = [[KeyboardButton(text=DEMO_MODE),
-             KeyboardButton(text=NORMAL)]]
+             KeyboardButton(text=NORMAL),
+             KeyboardButton(text=CANCEL)]]
 markup_mode = ReplyKeyboardMarkup(keyboard_mode, one_time_keyboard=True)
 
 keyboard_task = [[KeyboardButton(text=INFO),
              KeyboardButton(text=CONTR),
-             KeyboardButton(text=PROD)]]
+             KeyboardButton(text=PROD),
+             KeyboardButton(text=CANCEL)]]
 markup_task = ReplyKeyboardMarkup(keyboard_task, one_time_keyboard=True)
 
 keyboard_ext = [[KeyboardButton(text=CSV),
              KeyboardButton(text=XLSX),
-             KeyboardButton(text=JSON)]]
+             KeyboardButton(text=JSON),
+             KeyboardButton(text=CANCEL)]]
 markup_ext = ReplyKeyboardMarkup(keyboard_ext, one_time_keyboard=True)
+
+keyboard_cancel = keyboard_launch = [[KeyboardButton(text=CANCEL)]]
+markup_cancel = ReplyKeyboardMarkup(keyboard_cancel, one_time_keyboard=True)
 
 keyboard_launch = [[KeyboardButton(text=START),
                 KeyboardButton(text=CANCEL)]]
@@ -71,7 +78,8 @@ DIALOGUE = {MODE_CHOICE: 0,
                 UPLOAD: 1,
                 TASK: 2,
                 EXT: 3,
-                SPAN: 4}
+                EMAIL: 4,
+                SPAN: 5}
 
 
 def is_demo(choice):
@@ -155,9 +163,14 @@ def test_test(bot, update, user_data):
     test_bot.test_bot(bot, sec, chat_id)
 
 
-
 def mode(bot, update, user_data):
     mode = update.message.text
+    if mode == CANCEL:
+        update.message.reply_text('Задача снята.')
+        if user_data.get(PARAMS_SOURCE):
+            os.remove(user_data[PARAMS_SOURCE])
+        user_data.clear()
+        return ConversationHandler.END
     user_data[DEMO] = is_demo(mode)
     user_data[LAUNCH_TEXT] = 'Параметры операции:\n'
     user_data[LAUNCH_TEXT] += 'Режим: {}\n'.format(mode)
@@ -165,14 +178,22 @@ def mode(bot, update, user_data):
         update.message.reply_text("Выберите задачу", reply_markup=markup_task)
         user_data[PARAMS_TEXT] = process_params(demo=True)
         return DIALOGUE[TASK]
-    update.message.reply_text("Пришлите файл CSV с параметрами")
+    update.message.reply_text("Пришлите файл CSV с параметрами", reply_markup=markup_cancel)
     return DIALOGUE[UPLOAD]
 
 
 def upload(bot, update, user_data):
     chat_id = update.message.chat_id
+    cancel = update.message.text
+    print(cancel)
+    if cancel:
+        update.message.reply_text('Задача снята.')
+        if user_data.get(PARAMS_SOURCE):
+            os.remove(user_data[PARAMS_SOURCE])
+        user_data.clear()
+        return ConversationHandler.END
     received_file = bot.getFile(update.message.document.file_id)
-    print(received_file)
+    # print(received_file)
     if received_file['file_path'].endswith('.csv'):
         params_name = 'params_{}.csv'.format(chat_id)
         received_file.download(os.path.join('params', params_name))
@@ -197,6 +218,12 @@ def task(bot, update, user_data):
         user_data[LAUNCH_TEXT] += 'Задача: выгрузка "{}"\n'.format(task)
         update.message.reply_text("Выберите формат файла", reply_markup=markup_ext)
         return DIALOGUE[EXT]
+    elif task == CANCEL:
+        update.message.reply_text('Задача снята.')
+        if user_data.get(PARAMS_SOURCE):
+            os.remove(user_data[PARAMS_SOURCE])
+        user_data.clear()
+        return ConversationHandler.END
     user_data[LAUNCH_TEXT] += 'Задача: Вывести информацию о запросе\n'
     update.message.reply_text('Вы можете указать число дней в подпериодах, на которые может быть разбит период для дробления запроса. Число дней указывается целым числом. Если вы не хотите указывать этот параметр, просто нажмите кнопку "Запуск"', reply_markup=markup_launch)
     return DIALOGUE[SPAN]
@@ -204,10 +231,32 @@ def task(bot, update, user_data):
 
 def outformat(bot, update, user_data):
     outf = update.message.text
+    if outf == CANCEL:
+        update.message.reply_text('Задача снята.')
+        if user_data.get(PARAMS_SOURCE):
+            os.remove(user_data[PARAMS_SOURCE])
+        user_data.clear()
+        return ConversationHandler.END
     user_data[OUTF] = outf
-    print(outf)
     user_data[LAUNCH_TEXT] += 'Формат выгрузки: {}\n'.format(outf)
     user_data[EXTENSION] = get_fextension(outf)
+    update.message.reply_text('Укажите адрес электронной почты, куда будет отправлен выгруженный файл', reply_markup=markup_cancel)
+    return DIALOGUE[EMAIL]
+
+
+def email(bot, update, user_data):
+    email = update.message.text
+    if '@' not in email or '.' not in email.split('@')[-1]:
+        update.message.reply_text("Вы указали некорректный email", reply_markup=markup_cancel)
+        return DIALOGUE[EMAIL]
+    elif email == CANCEL:
+        update.message.reply_text('Задача снята.')
+        if user_data.get(PARAMS_SOURCE):
+            os.remove(user_data[PARAMS_SOURCE])
+        user_data.clear()
+        return ConversationHandler.END
+    user_data[EMAIL] = email
+    print(user_data[EMAIL])
     update.message.reply_text("Вы можете указать число дней в подпериодах, на которые может быть разбит период для дробления запроса. Число дней указывается целым числом. Если вы не хотите указывать этот параметр, просто нажмите кнопку 'Запуск'", reply_markup=markup_launch)
     return DIALOGUE[SPAN]
 
@@ -222,6 +271,7 @@ def add_span(bot, update, user_data):
         update.message.reply_text('Задача снята.')
         if user_data.get(PARAMS_SOURCE):
             os.remove(user_data[PARAMS_SOURCE])
+        user_data.clear()
         return ConversationHandler.END
     span = process_span(choice)
     if type(span) is str:
@@ -295,11 +345,12 @@ def main():
 
     conversation_handler = ConversationHandler(
                 entry_points=[start_handler],
-                states={0: [RegexHandler('^(Демо|Обычный)$', mode, pass_user_data=True)],
-                        1: [MessageHandler(Filters.document, upload, pass_user_data=True)],
-                        2: [RegexHandler('^(ИНФО|По контрактам|По продуктам)$', task, pass_user_data=True)],
-                        3: [RegexHandler('^(CSV|XLSX|JSON)$', outformat, pass_user_data=True)],
-                        4: [RegexHandler('^(Запуск|Снять задачу|[0-9]+)$', add_span, pass_user_data=True)]},
+                states={0: [RegexHandler('^(Демо|Обычный|Снять задачу)$', mode, pass_user_data=True)],
+                        1: [MessageHandler(Filters.document, upload, pass_user_data=True), RegexHandler('^(Снять задачу)$', upload, pass_user_data=True)],
+                        2: [RegexHandler('^(ИНФО|По контрактам|По продуктам|Снять задачу)$', task, pass_user_data=True)],
+                        3: [RegexHandler('^(CSV|XLSX|JSON|Снять задачу)$', outformat, pass_user_data=True)],
+                        4: [RegexHandler('^(.+@.+\..+|Снять задачу|Снять задачу)$', email, pass_user_data=True)],
+                        5: [RegexHandler('^(Запуск|Снять задачу|[0-9]+)$', add_span, pass_user_data=True)]},
                 fallbacks=[start_handler],
                 allow_reentry=True)
     dispatcher.add_handler(conversation_handler)
