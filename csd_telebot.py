@@ -138,6 +138,23 @@ def start(bot, update):
     update.message.reply_text("Выберите режим", reply_markup=markup_mode)
     return DIALOGUE[MODE_CHOICE]
 
+import test_bot
+
+
+def test(bot, update):
+    update.message.reply_text("type sleep in seconds")
+    return 0
+
+
+def test_test(bot, update, user_data):
+    chat_id = update.message.chat_id
+    print(chat_id)
+    sec = update.message.text
+    print(sec)
+    print(type(bot))
+    test_bot.test_bot(bot, sec, chat_id)
+
+
 
 def mode(bot, update, user_data):
     mode = update.message.text
@@ -268,6 +285,14 @@ def main():
     dispatcher = updater.dispatcher
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', sos)
+    test_handler = CommandHandler('test', test)
+    test_dialogue_handler = ConversationHandler(
+                entry_points=[test_handler],
+                states={0: [RegexHandler('^([0-9]+)$', test_test, pass_user_data=True)]
+                },
+                fallbacks=[test_handler],
+                allow_reentry=True)
+
     conversation_handler = ConversationHandler(
                 entry_points=[start_handler],
                 states={0: [RegexHandler('^(Демо|Обычный)$', mode, pass_user_data=True)],
@@ -278,6 +303,7 @@ def main():
                 fallbacks=[start_handler],
                 allow_reentry=True)
     dispatcher.add_handler(conversation_handler)
+    dispatcher.add_handler(test_dialogue_handler)
     dispatcher.add_handler(help_handler)
     dispatcher.add_error_handler(error)
     updater.start_polling()

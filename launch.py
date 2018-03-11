@@ -4,6 +4,7 @@
 '''
 import os
 import time
+from telegram.ext import Updater
 
 import downloader.process as process
 import downloader.api_builder as api_builder
@@ -24,6 +25,11 @@ def convert_running_time(value):
     minutes, seconds = divmod(value, 60)
     hours, minutes = divmod(minutes, 60)
     return 'Время работы скрипта: %d:%02d:%02d' % (hours, minutes, seconds)
+
+
+def send_to_telebot(bot, chat_id):
+    updater = Updater(token=TOKEN)
+    dispatcher = updater.dispatcher
 
 
 def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
