@@ -28,6 +28,7 @@ OUTF = 'outf'
 EXTENSION = 'extension'
 PARAMS_SOURCE = 'params_source'
 EMAIL = 'email'
+USRID = 'usrid'
 
 # Значения клавиатуры
 DEMO_MODE = 'Демо'
@@ -135,8 +136,8 @@ def process_params(file_location=None, demo=False):
     return query_info
 
 
-def get_filename(chat_id):
-    data_files = os.listdir('data')
+def get_filename(chat_id, folder):
+    data_files = os.listdir(folder)
     max_val = -1
     for entry in data_files:
         if entry.startswith(str(chat_id)):
@@ -155,23 +156,23 @@ def start(bot, update):
     update.message.reply_text("Выберите режим", reply_markup=markup_mode)
     return DIALOGUE[MODE_CHOICE]
 
-import test_bot
-from threading import Thread
-
-
-def test(bot, update):
-    update.message.reply_text("type sleep in seconds")
-    return 0
-
-
-def test_test(bot, update, user_data):
-    chat_id = update.message.chat_id
-    print(chat_id)
-    sec = update.message.text
-    print(sec)
-
-def thread_launch(sec):
-    os.system('python test_bot.py {}'.format(sec))
+# import test_bot
+# from threading import Thread
+#
+#
+# def test(bot, update):
+#     update.message.reply_text("type sleep in seconds")
+#     return 0
+#
+#
+# def test_test(bot, update, user_data):
+#     chat_id = update.message.chat_id
+#     print(chat_id)
+#     sec = update.message.text
+#     print(sec)
+#
+# def thread_launch(sec):
+#     os.system('python test_bot.py {}'.format(sec))
 
 
 def mode(bot, update, user_data):
@@ -225,7 +226,7 @@ def task(bot, update, user_data):
     task = update.message.text
     user_data[TASK] = get_task_code(task)
     if task == PROD or task == CONTR:
-        user_data[FNAME] = get_filename(update.message.chat_id)
+        user_data[FNAME] = get_filename(update.message.chat_id, 'data')
         user_data[LAUNCH_TEXT] += 'Задача: выгрузка "{}"\n'.format(task)
         update.message.reply_text("Выберите формат файла", reply_markup=markup_ext)
         return DIALOGUE[EXT]
@@ -236,7 +237,7 @@ def task(bot, update, user_data):
         user_data.clear()
         return ConversationHandler.END
     user_data[LAUNCH_TEXT] += 'Задача: Вывести информацию о запросе\n'
-    update.message.reply_text('Укажите адрес электронной почты, куда будет отправлен выгруженный файл', reply_markup=markup_cancel)
+    update.message.reply_text('Укажите адрес электронной почты, куда будет отправлен результат запроса', reply_markup=markup_cancel)
     return DIALOGUE[EMAIL]
 
 
@@ -251,7 +252,7 @@ def outformat(bot, update, user_data):
     user_data[OUTF] = outf
     user_data[LAUNCH_TEXT] += 'Формат выгрузки: {}\n'.format(outf)
     user_data[EXTENSION] = get_fextension(outf)
-    update.message.reply_text('Укажите адрес электронной почты, куда будет отправлен выгруженный файл', reply_markup=markup_cancel)
+    update.message.reply_text('Укажите адрес электронной почты, куда будет отправлен результат запроса', reply_markup=markup_cancel)
     return DIALOGUE[EMAIL]
 
 
@@ -320,7 +321,8 @@ def redirect_to_launch(bot, update, user_data):
     chat_id = update.message.chat_id
     msg = 'Скрипт запущен. В зависимости от объема задачи  и количества запросов от разных пользователей операция может занять от нескольких секунд до нескольких часов. Результат будет отправлен по адресу {}.'.format(user_data[EMAIL])
     bot.send_message(chat_id=chat_id, text=msg)
-    usrdata_path = os.path.join('usrdata', 'usrdata{}.json'.format(chat_id))
+    usrfile = get_filename(chat_id, 'usrdata')
+    usrdata_path = os.path.join('usrdata', '{}.json'.format(usrfile))
     dump_json(user_data, usrdata_path)
     user_data.clear()
 
@@ -355,13 +357,13 @@ def main():
     dispatcher = updater.dispatcher
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', sos)
-    test_handler = CommandHandler('test', test)
-    test_dialogue_handler = ConversationHandler(
-                entry_points=[test_handler],
-                states={0: [RegexHandler('^([0-9]+)$', test_test, pass_user_data=True)]
-                },
-                fallbacks=[test_handler],
-                allow_reentry=True)
+    # test_handler = CommandHandler('test', test)
+    # test_dialogue_handler = ConversationHandler(
+    #             entry_points=[test_handler],
+    #             states={0: [RegexHandler('^([0-9]+)$', test_test, pass_user_data=True)]
+    #             },
+    #             fallbacks=[test_handler],
+    #             allow_reentry=True)
 
     conversation_handler = ConversationHandler(
                 entry_points=[start_handler],
@@ -374,7 +376,7 @@ def main():
                 fallbacks=[start_handler],
                 allow_reentry=True)
     dispatcher.add_handler(conversation_handler)
-    dispatcher.add_handler(test_dialogue_handler)
+    # dispatcher.add_handler(test_dialogue_handler)
     dispatcher.add_handler(help_handler)
     dispatcher.add_error_handler(error)
     updater.start_polling()

@@ -25,6 +25,7 @@ NO_PARAMS_MSG = 'Вы не задали параметры. Запрос не м
 TASK_INFO = dict()  # Заполняется на основании пользовательского запроса в launch.launch
 
 DEFAULT_PARAMS = {'customerregion': '77',
+                    'pricerange': '0.0-1000.0',
                   'daterange': drp.date_to_str(drp.get_default_daterange()[0],
                                                drp.get_default_daterange()[1]),
                   'fz': '44'}
