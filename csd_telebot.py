@@ -276,7 +276,7 @@ def add_span(bot, update, user_data):
     choice = update.message.text
     print(choice)
     if choice == START:
-        launch_launch(bot, update, user_data)
+        redirect_to_launch(bot, update, user_data)
         return ConversationHandler.END
     elif choice == CANCEL:
         update.message.reply_text('Задача снята.')
@@ -294,36 +294,35 @@ def add_span(bot, update, user_data):
     return DIALOGUE[SPAN]
 
 
-def launch_launch(bot, update, user_data):
-    chat_id = update.message.chat_id
-    # bot.send_message(chat_id=chat_id, text=user_data[PARAMS_TEXT])
-    user_data[LAUNCH_TEXT] += '\n' + user_data[PARAMS_TEXT]
-    user_data[LAUNCH_TEXT] += '\n\nПриступаю к выполнению. В зависимости от объема задачи операция может занять от нескольких секунд до нескольких часов.'
-    bot.send_message(chat_id=chat_id, text=user_data[LAUNCH_TEXT])
-    result = launch.launch(source=user_data.get(PARAMS_SOURCE),
-                    task=user_data[TASK],
-                    out_format=user_data.get(OUTF, 'CSV'),
-                    span=user_data.get(SPAN, 30),
-                    out_name=user_data.get(FNAME),
-                    demo=user_data[DEMO])
-    if user_data.get(FNAME):
-        f_path = os.path.join('data', user_data[FNAME] + user_data[EXTENSION])
-        bot.send_document(chat_id=chat_id, document=open(f_path, 'rb'))
-        os.remove(f_path)
-    if user_data.get(PARAMS_SOURCE):
-        os.remove(user_data[PARAMS_SOURCE])
-    bot.send_message(chat_id=chat_id, text=result)
-    user_data.clear()
+# def launch_launch(bot, update, user_data):
+#     chat_id = update.message.chat_id
+#     # bot.send_message(chat_id=chat_id, text=user_data[PARAMS_TEXT])
+#     user_data[LAUNCH_TEXT] += '\n' + user_data[PARAMS_TEXT]
+#     user_data[LAUNCH_TEXT] += '\n\nПриступаю к выполнению. В зависимости от объема задачи операция может занять от нескольких секунд до нескольких часов.'
+#     bot.send_message(chat_id=chat_id, text=user_data[LAUNCH_TEXT])
+#     result = launch.launch(source=user_data.get(PARAMS_SOURCE),
+#                     task=user_data[TASK],
+#                     out_format=user_data.get(OUTF, 'CSV'),
+#                     span=user_data.get(SPAN, 30),
+#                     out_name=user_data.get(FNAME),
+#                     demo=user_data[DEMO])
+#     if user_data.get(FNAME):
+#         f_path = os.path.join('data', user_data[FNAME] + user_data[EXTENSION])
+#         bot.send_document(chat_id=chat_id, document=open(f_path, 'rb'))
+#         os.remove(f_path)
+#     if user_data.get(PARAMS_SOURCE):
+#         os.remove(user_data[PARAMS_SOURCE])
+#     bot.send_message(chat_id=chat_id, text=result)
+#     user_data.clear()
 
 
 def redirect_to_launch(bot, update, user_data):
     chat_id = update.message.chat_id
-    msg = 'Скрипт запущен. В зависимости от объема задачи операция может занять от нескольких секунд до нескольких часов. Результат будет отправлен по адресу {}'.format(user_data[EMAIL])
+    msg = 'Скрипт запущен. В зависимости от объема задачи  и количества запросов от разных пользователей операция может занять от нескольких секунд до нескольких часов. Результат будет отправлен по адресу {}.'.format(user_data[EMAIL])
     bot.send_message(chat_id=chat_id, text=msg)
     usrdata_path = os.path.join('usrdata', 'usrdata{}.json'.format(chat_id))
     dump_json(user_data, usrdata_path)
     user_data.clear()
-    os.system('python emailscript.py')
 
 
 def sos(bot, update):
