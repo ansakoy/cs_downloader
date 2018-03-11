@@ -156,24 +156,6 @@ def start(bot, update):
     update.message.reply_text("Выберите режим", reply_markup=markup_mode)
     return DIALOGUE[MODE_CHOICE]
 
-# import test_bot
-# from threading import Thread
-#
-#
-# def test(bot, update):
-#     update.message.reply_text("type sleep in seconds")
-#     return 0
-#
-#
-# def test_test(bot, update, user_data):
-#     chat_id = update.message.chat_id
-#     print(chat_id)
-#     sec = update.message.text
-#     print(sec)
-#
-# def thread_launch(sec):
-#     os.system('python test_bot.py {}'.format(sec))
-
 
 def mode(bot, update, user_data):
     mode = update.message.text
@@ -207,7 +189,8 @@ def upload(bot, update, user_data):
     received_file = bot.getFile(update.message.document.file_id)
     # print(received_file)
     if received_file['file_path'].endswith('.csv'):
-        params_name = 'params_{}.csv'.format(chat_id)
+        current_query_id = get_filename(chat_id, 'params')
+        params_name = '{}.csv'.format(current_query_id)
         received_file.download(os.path.join('params', params_name))
         user_data[PARAMS_SOURCE] = os.path.join('params', params_name)
         check = process_params(file_location=user_data[PARAMS_SOURCE])
@@ -227,7 +210,7 @@ def task(bot, update, user_data):
     user_data[TASK] = get_task_code(task)
     if task == PROD or task == CONTR:
         user_data[FNAME] = get_filename(update.message.chat_id, 'data')
-        user_data[LAUNCH_TEXT] += 'Задача: выгрузка "{}"\n'.format(task)
+        user_data[LAUNCH_TEXT] += 'Задача: выгрузка {}\n'.format(task)
         update.message.reply_text("Выберите формат файла", reply_markup=markup_ext)
         return DIALOGUE[EXT]
     elif task == CANCEL:
@@ -322,6 +305,7 @@ def redirect_to_launch(bot, update, user_data):
     msg = 'Скрипт запущен. В зависимости от объема задачи  и количества запросов от разных пользователей операция может занять от нескольких секунд до нескольких часов. Результат будет отправлен по адресу {}.'.format(user_data[EMAIL])
     bot.send_message(chat_id=chat_id, text=msg)
     usrfile = get_filename(chat_id, 'usrdata')
+    user_data[USRID] = chat_id
     usrdata_path = os.path.join('usrdata', '{}.json'.format(usrfile))
     dump_json(user_data, usrdata_path)
     user_data.clear()

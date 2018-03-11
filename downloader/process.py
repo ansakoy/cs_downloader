@@ -102,9 +102,7 @@ def get_response_from_api(url):
         else:
             print(response.status_code)
             print(url)
-            alert = "Ошибка на сервере.\n
-            Попробуйте еще раз или обратитесь в поддержку проекта
-            "Госзатраты" (https://clearspending.ru/)."
+            alert = 'Ошибка на сервере.\nПопробуйте еще раз или обратитесь в поддержку проекта "Госзатраты" (https://clearspending.ru/).'
             return alert
     except requests.exceptions.ConnectionError:
         return 'Проблема с соединением. Возможно, некорректный URL запроса.'

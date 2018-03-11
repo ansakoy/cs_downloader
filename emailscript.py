@@ -12,7 +12,7 @@ SMTPUSER = "SMTPUSER"
 SMTPPASS = "SMTPPASS"
 MESSAGEBODY = "MESSAGEBODY"
 SUBJECT = "SUBJECT"
-ATTACHMENT = "ATTCHMENT"
+ATTACHMENT = "ATTACHMENT"
 
 
 # USER_DATA FIELDS
@@ -30,7 +30,7 @@ OUTF = 'outf'
 EXTENSION = 'extension'
 PARAMS_SOURCE = 'params_source'
 EMAIL = 'email'
-
+USRID = 'usrid'
 
 
 def load_json(source):
@@ -38,31 +38,34 @@ def load_json(source):
         return json.load(handler)
 
 
-def write_emailscript(usrdata, msg):
+def write_emailscript(usrdata, msg_file):
     if usrdata.get(FNAME):
-        f_path = os.path.join(os.path.join(os.getcwd(), 'data', usrdata[FNAME] + usrdata[EXTENSION])
+        f_path = os.path.join(os.getcwd(), 'data', usrdata[FNAME] + usrdata[EXTENSION])
     text = "#!/bin/bash"
     text += '\n{}="{}"'.format(SMTPFROM, EMAIL_DATA[SMTPFROM])
     text += "\n{}={}".format(SMTPTO, usrdata[EMAIL])
     text += "\n{}={}".format(SMTPSERVER, EMAIL_DATA[SMTPSERVER])
     text += "\n{}={}".format(SMTPUSER, EMAIL_DATA[SMTPUSER])
     text += '\n{}="{}"'.format(SMTPPASS, EMAIL_DATA[SMTPPASS])
-    text += '\n{}="{}"'.format(MESSAGEBODY, msg)
+    # text += '\n{}="{}"'.format(MESSAGEBODY, msg)
     text += '\n{}="{}"'.format(SUBJECT, '[CSDownloader] Результат запроса')
     if usrdata.get(FNAME):
         text +=' \n{}="{}"'.format(ATTACHMENT, f_path)
-        # text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -o message-file={} -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS -a $ATTACHMENT".format(msg_file)
-        text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -m $MESSAGEBODY -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS -a $ATTACHMENT"
+        text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -o message-file={} -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS -a $ATTACHMENT".format(msg_file)
+        # text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -m $MESSAGEBODY -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS -a $ATTACHMENT"
     else:
-        # text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -o message-file={} -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS".format(msg_file)
-        text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -m $MESSAGEBODY -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS"
+        text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -o message-file={} -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS".format(msg_file)
+        # text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -m $MESSAGEBODY -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS"
     with open('emailbashscript', 'w') as handler:
         handler.write(text)
 
 
 
 def process_usr_query(source):
+    # print('####### PROCESSING SOURCE {} #######'.format(source))
     user_data = load_json(source)
+    # print('   ####### PARAMS {} #######'.format(user_data.get(PARAMS_SOURCE)))
+    # print('   ####### OUTFILE {} #######'.format(user_data.get(FNAME)))
     result = launch.launch(source=user_data.get(PARAMS_SOURCE),
                     task=user_data[TASK],
                     out_format=user_data.get(OUTF, 'CSV'),
@@ -70,20 +73,29 @@ def process_usr_query(source):
                     out_name=user_data.get(FNAME),
                     demo=user_data[DEMO])
     msg = user_data[LAUNCH_TEXT] + '\n\n' + user_data[PARAMS_TEXT] + '\n\n' + result
-    # msg_file = '{}.txt'.format(user_data[USRID])
-    # with open(msg_file, 'w') as handler:
-    #     handler.write(msg)
-    # write_emailscript(user_data, msg_file)
-    write_emailscript(user_data, msg)
+    msg_file = '{}.txt'.format(user_data[USRID])
+    with open(msg_file, 'w') as handler:
+        handler.write(msg)
+    write_emailscript(user_data, msg_file)
+    # write_emailscript(user_data, msg)
     os.system('chmod +x emailbashscript')
     os.system('./emailbashscript')
-    # os.remove(msg_file)
+    os.remove(msg_file)
+    # print('####### REMOVING SOURCE {} #######'.format(source))
+    os.remove(source)
     if user_data.get(FNAME):
         f_path = os.path.join('data', user_data[FNAME] + user_data[EXTENSION])
-        os.remove(f_path)
+        try:
+            # print('####### DELETING OUTPUT {} #######'.format(f_path))
+            os.remove(f_path)
+        except FileNotFoundError:
+            pass
     if user_data.get(PARAMS_SOURCE):
-        os.remove(user_data[PARAMS_SOURCE])
-    os.remove(source)
+        try:
+            # print('####### DELETING PARAMS {} #######'.format(user_data[PARAMS_SOURCE]))
+            os.remove(user_data[PARAMS_SOURCE])
+        except FileNotFoundError:
+            pass
 
 
 if __name__ == '__main__':
