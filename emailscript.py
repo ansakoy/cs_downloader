@@ -40,7 +40,7 @@ def load_json(source):
 
 def write_emailscript(usrdata, msg):
     if usrdata.get(FNAME):
-        f_path = os.path.join('data', usrdata[FNAME] + usrdata[EXTENSION])
+        f_path = os.path.join(os.path.join(os.getcwd(), 'data', usrdata[FNAME] + usrdata[EXTENSION])
     text = "#!/bin/bash"
     text += '\n{}="{}"'.format(SMTPFROM, EMAIL_DATA[SMTPFROM])
     text += "\n{}={}".format(SMTPTO, usrdata[EMAIL])
