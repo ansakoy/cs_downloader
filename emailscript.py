@@ -3,6 +3,8 @@ import launch
 from sys import argv
 import json
 import os
+import zipfile
+from os.path import basename
 
 # BASH SCRIPT FIELDS
 SMTPFROM = "SMTPFROM"
@@ -41,6 +43,9 @@ def load_json(source):
 def write_emailscript(usrdata, msg_file):
     if usrdata.get(FNAME):
         f_path = os.path.join(os.getcwd(), 'data', usrdata[FNAME] + usrdata[EXTENSION])
+        zip_path = os.path.join(usrdata[FNAME] + '.zip')
+        with zipfile.ZipFile(zip_path, 'w') as ziphandler:
+            ziphandler.write(f_path, basename(f_path))
     text = "#!/bin/bash"
     text += '\n{}="{}"'.format(SMTPFROM, EMAIL_DATA[SMTPFROM])
     text += "\n{}={}".format(SMTPTO, usrdata[EMAIL])
@@ -50,7 +55,7 @@ def write_emailscript(usrdata, msg_file):
     # text += '\n{}="{}"'.format(MESSAGEBODY, msg)
     text += '\n{}="{}"'.format(SUBJECT, '[CSDownloader] Результат запроса')
     if usrdata.get(FNAME):
-        text +=' \n{}="{}"'.format(ATTACHMENT, f_path)
+        text +=' \n{}="{}"'.format(ATTACHMENT, zip_path)
         text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -o message-file={} -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS -a $ATTACHMENT".format(msg_file)
         # text += "\nsendEmail -f $SMTPFROM -t $SMTPTO -u $SUBJECT -m $MESSAGEBODY -s $SMTPSERVER -xu $SMTPUSER -xp $SMTPPASS -a $ATTACHMENT"
     else:
@@ -84,10 +89,12 @@ def process_usr_query(source):
     # print('####### REMOVING SOURCE {} #######'.format(source))
     os.remove(source)
     if user_data.get(FNAME):
+        zip_path = os.path.join('data', user_data[FNAME] + '.zip')
         f_path = os.path.join('data', user_data[FNAME] + user_data[EXTENSION])
         try:
             # print('####### DELETING OUTPUT {} #######'.format(f_path))
             os.remove(f_path)
+            os.remove(zip_path)
         except FileNotFoundError:
             pass
     if user_data.get(PARAMS_SOURCE):

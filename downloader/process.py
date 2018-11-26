@@ -30,7 +30,8 @@ DEFAULT_JSON = 'downloader/contr_params.json'
 
 # os.chdir('CS_DOWNLOADER\cs_downloader\downloader')
 
-LIMIT = 500
+LIMIT_SERVER = 500
+LIMIT_CSD = 5000
 BY_CONTRACT = 'BY_CONTRACT'
 BY_PRODUCT = 'BY_PRODUCT'
 
@@ -72,18 +73,26 @@ def get_params_from_csv(source):
         return alert
 
 
-# def make_default_json_from_csv():
-#     params_dict = dict()
-#     with open(DEFAULT_CSV, 'r', encoding='utf-8') as handler:
-#         reader = csv.reader(handler)
-#         for row in reader:
-#             descr, param, val = row
-#             if len(val) < 1:
-#                 params_dict[param] = None
-#             else:
-#                 params_dict[param] = val
-#     with open(DEFAULT_JSON, 'w') as handler:
-#         json.dump(params_dict, handler)
+def get_params_from_txt(source):
+    '''
+    Загрузить параметры запроса из файла TXT
+    Возвращает словарь, содержащий только поля с заполненными значениями.
+    Если скрипт не находит файла, то возвращает предупреждение.
+    '''
+    alert = 'Не могу найти файл TXT с параметрами: {}'.format(source)
+    params_dict = dict()
+    try:
+        with open(source, 'r', encoding='utf-8') as handler:
+            rows = handler.readlines()
+            for row in rows:
+                chunks = row.split(':')
+                if len(chunks) == 2:
+                    key = chunks[0]
+                    value = chunks[1].strip()
+                    params_dict[key] = value
+        return params_dict
+    except FileNotFoundError:
+        return alert
 
 
 def get_response_from_api(url):
@@ -97,7 +106,7 @@ def get_response_from_api(url):
         if response.status_code < 400:
             return response.json()
         elif response.status_code < 500:
-            print(response.status_code)
+            print(url, response.status_code)
             return 'По этому запросу контрактов не найдено. Попробуйте задать другие параметры.'
         else:
             print(response.status_code)
@@ -124,14 +133,14 @@ def get_num_pages(api_query):
 def all_in_one(url):
     '''
     Проверить, укладывается число полученных в выдаче контрактов
-    в пределы LIMIT.
+    в пределы LIMIT_SERVER.
     Возвращает True, если да, False, если нет, и сообщает об ошибке,
     если она возвращается в ответ на запрос вместо выдачи.
     '''
     response = get_response_from_api(url)
     if type(response) is not str:
         num_contracts = response['contracts']['total']
-        if num_contracts < LIMIT:
+        if num_contracts < LIMIT_SERVER:
             return True
         else:
             return False
@@ -170,7 +179,11 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
         writer = select_writer(out_format, out_name, date_for_name, task)
         if type(writer) is str:
             return writer
-        writer.start()
+        try:
+            writer.start()
+        except PermissionError:
+            return settings.PERMISSION_ERROR
+        extracted_contracts = 0
         for page in range(1, num_pages + 1):
             query = url_all_period + '&page={}'.format(page)
             response = get_response_from_api(query)
@@ -186,6 +199,11 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
                             products = by_product(contract)
                             for product in products:
                                 writer.write(product)
+                    extracted_contracts += 1
+                    if extracted_contracts >= LIMIT_CSD:
+                        writer.stop()
+                        print(settings.DONE_MSG.format(writer.get_outpath()))
+                        return 'Готово.'
                 time.sleep(2)
             else:
                 writer.stop()
@@ -200,7 +218,11 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
     writer = select_writer(out_format, out_name, date_for_name, task)
     if type(writer) is str:
         return writer
-    writer.start()
+    try:
+        writer.start()
+    except PermissionError:
+        return settings.PERMISSION_ERROR
+    extracted_contracts = 0
     for period in ranges:
         url = base_url.format(period)
         num_pages = get_num_pages(url)
@@ -230,6 +252,15 @@ def extract_data(api_query, drange, strategy, out_format, out_name, span, task):
                         if products:
                             for product in products:
                                 writer.write(product)
+                extracted_contracts += 1
+                if extracted_contracts >= LIMIT_CSD:
+                    writer.stop()
+                    alert = ''
+                    if too_many > 0:
+                        alert = "\nПо этому запросу установлено искусственное ограничение на выдачу - не более 500 контрактов. Мы попытались раздробить запрос на части, разбив заданный временной диапазон на периоды по {} дней. Но для некоторых периодов число контрактов в выдаче все равно достигало 500. Чтобы обогнуть ограничение, вы можете указать более короткий период дробления по временному диапазону или использовать дополнительные параметры фильтрации (например, по региону заказчика или по ценовому диапазону).".format(
+                            span)
+                    print(settings.DONE_MSG.format(writer.get_outpath()))
+                    return 'Готово'
             time.sleep(2)
     writer.stop()
     alert = ''
@@ -249,8 +280,13 @@ def get_query_info(api_query, drange, strategy, span):
         response = get_response_from_api(url_all_period)
         if type(response) is not str:
             num_contracts = response['contracts']['total']
+            if num_contracts >= LIMIT_CSD:
+                time_guess = 5
+            else:
+                time_guess = (round(num_contracts / 1000.0))
             text = 'Найдено контрактов по запросу: {}'.format(num_contracts)
-            text += '\nОжидаемое время выгрузки: около {} минут(ы)'.format(round(num_contracts / 1000.0))
+            text += '\nЗа один запуск скрипта возможна выгрузка не более {} контрактов.'.format(LIMIT_CSD)
+            text += '\nОжидаемое время выгрузки: около {} минут(ы)'.format(time_guess)
             return text
         return response
     begin, end = drp.str_to_date(drange)
@@ -267,11 +303,16 @@ def get_query_info(api_query, drange, strategy, span):
         elif type(response) is str:
             return response
         total = response['contracts']['total']
-        if total >= LIMIT:
+        if total >= LIMIT_SERVER:
             too_many += 1
         num_contracts += total
+    if num_contracts >= LIMIT_CSD:
+        time_guess = 5
+    else:
+        time_guess = (round(num_contracts / 1000.0))
     text = 'Найдено контрактов по запросу: {}\n'.format(num_contracts)
-    text += '\nОжидаемое время выгрузки: около {} минут(ы)'.format(round(num_contracts / 1000.0))
+    text += '\nЗа один запуск скрипта возможна выгрузка не более {} контрактов.'.format(LIMIT_CSD)
+    text += '\nОжидаемое время выгрузки: около {} минут(ы)'.format(time_guess)
     # print(text)
     alert = ''
     if too_many > 0:

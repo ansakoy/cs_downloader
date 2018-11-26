@@ -26,9 +26,9 @@ def convert_running_time(value):
     return 'Время работы скрипта: %d:%02d:%02d' % (hours, minutes, seconds)
 
 
-def send_to_telebot(bot, chat_id):
-    updater = Updater(token=TOKEN)
-    dispatcher = updater.dispatcher
+# def send_to_telebot(bot, chat_id):
+#     updater = Updater(token=TOKEN)
+#     dispatcher = updater.dispatcher/.
 
 
 def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
@@ -44,6 +44,8 @@ def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
 
     elif source and source.endswith('.csv'):
         params = process.get_params_from_csv(source)
+    elif source and source.endswith('.txt'):
+        params = process.get_params_from_txt(source)
     else:
         print(NO_PARAMS_MSG)
         return NO_PARAMS_MSG

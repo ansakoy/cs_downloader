@@ -28,7 +28,7 @@ class JsonWriter():
 
     def write(self, dictionary):
         if not self.first:
-            self.handler.write('\n')
+            self.handler.write(',\n')
         json.dump(dictionary, self.handler)
         self.first = False
 

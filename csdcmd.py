@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser(description='Configure request')
 parser.add_argument('-q', '--query',
                     type=str,
                     metavar='',
-                    help='Полный путь к файлу CSV, содержащему параметры        запроса')
+                    help='Полный путь к файлу CSV, содержащему параметры запроса')
 parser.add_argument('-s', '--span',
                     type=str,
                     metavar='',

@@ -62,7 +62,7 @@ def by_contract(contract):
     regnum = contract.get('regNum', '-')
     base_url = 'https://clearspending.ru/contract/{}'
     contract_info = {CLEARSPENDING_URL: base_url.format(regnum),
-                     REGNUM: regnum,
+                     REGNUM: str(regnum),
                      SIGN_DATE: contract.get('signDate', '-'),
                      FZ: contract.get('fz', '-'),
                      CUSTOMER_NAME: contract.get('customer', {}).get('fullName', '-'),
@@ -108,7 +108,7 @@ def by_product(contract):
     base_url = 'https://clearspending.ru/contract/{}'
     all_products = list()
     contract_info = {CLEARSPENDING_URL: base_url.format(regnum),
-                     REGNUM: regnum,
+                     REGNUM: str(regnum),
                      SIGN_DATE: contract.get('signDate', '-'),
                      FZ: contract.get('fz', '-'),
                      CUSTOMER_NAME: contract.get('customer', {}).get('fullName', '-'),

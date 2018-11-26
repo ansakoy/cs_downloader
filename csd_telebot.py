@@ -124,12 +124,13 @@ def process_params(file_location=None, demo=False):
     if demo:
         params = settings.DEFAULT_PARAMS
     else:
-        params = process.get_params_from_csv(file_location)
+        # params = process.get_params_from_csv(file_location)
+        params = process.get_params_from_txt(file_location)
     if not api_builder.has_valid_fields(params):
         return settings.WRONG_PARAMS_MSG
     if not params.get(DATERANGE):
         default = daterange_processor.get_default_daterange()
-        daterange = daterange_processor.date_to_str(default)
+        daterange = daterange_processor.date_to_str(default[0], default[1])
         query_info = launch.get_query_info_text(params, daterange)
         return query_info
     query_info = launch.get_query_info_text(params)
@@ -172,7 +173,8 @@ def mode(bot, update, user_data):
         update.message.reply_text("Выберите задачу", reply_markup=markup_task)
         user_data[PARAMS_TEXT] = process_params(demo=True)
         return DIALOGUE[TASK]
-    update.message.reply_text("Пришлите файл CSV с параметрами", reply_markup=markup_cancel)
+    # update.message.reply_text("Пришлите файл CSV с параметрами", reply_markup=markup_cancel)
+    update.message.reply_text("Пришлите файл TXT с параметрами", reply_markup=markup_cancel)
     return DIALOGUE[UPLOAD]
 
 
@@ -188,9 +190,11 @@ def upload(bot, update, user_data):
         return ConversationHandler.END
     received_file = bot.getFile(update.message.document.file_id)
     # print(received_file)
-    if received_file['file_path'].endswith('.csv'):
+    # if received_file['file_path'].endswith('.csv'):
+    if received_file['file_path'].endswith('.txt'):
         current_query_id = get_filename(chat_id, 'params')
-        params_name = '{}.csv'.format(current_query_id)
+        # params_name = '{}.csv'.format(current_query_id)
+        params_name = '{}.txt'.format(current_query_id)
         received_file.download(os.path.join('params', params_name))
         user_data[PARAMS_SOURCE] = os.path.join('params', params_name)
         check = process_params(file_location=user_data[PARAMS_SOURCE])
@@ -201,7 +205,8 @@ def upload(bot, update, user_data):
         user_data[PARAMS_SOURCE] = os.path.join('params', params_name)
         user_data[PARAMS_TEXT] = check
         return DIALOGUE[TASK]
-    update.message.reply_text("Неверный формат файла. Пришлите файл CSV с параметрами.")
+    # update.message.reply_text("Неверный формат файла. Пришлите файл CSV с параметрами.")
+    update.message.reply_text("Неверный формат файла. Пришлите файл TXT с параметрами.")
     return DIALOGUE[UPLOAD]
 
 
