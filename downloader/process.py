@@ -83,7 +83,11 @@ def get_params_from_txt(source):
     params_dict = dict()
     try:
         with open(source, 'r', encoding='utf-8') as handler:
-            rows = handler.readlines()
+            try:
+                rows = handler.readlines()
+            except UnicodeDecodeError:
+                alert = 'Кодировка файла - не UTF-8. Измените кодировку и попробуйте повторить запрос.'
+                return alert
             for row in rows:
                 chunks = row.split(':')
                 if len(chunks) == 2:
