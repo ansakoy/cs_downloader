@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, ConversationHandler, RegexHandler
 from telegram import ReplyKeyboardMarkup, KeyboardButton
@@ -68,7 +69,7 @@ keyboard_ext = [[KeyboardButton(text=CSV),
              KeyboardButton(text=CANCEL)]]
 markup_ext = ReplyKeyboardMarkup(keyboard_ext, one_time_keyboard=True)
 
-keyboard_cancel = keyboard_launch = [[KeyboardButton(text=CANCEL)]]
+keyboard_cancel = [[KeyboardButton(text=CANCEL)]]
 markup_cancel = ReplyKeyboardMarkup(keyboard_cancel, one_time_keyboard=True)
 
 keyboard_launch = [[KeyboardButton(text=START),
@@ -82,6 +83,12 @@ DIALOGUE = {MODE_CHOICE: 0,
                 EXT: 3,
                 EMAIL: 4,
                 SPAN: 5}
+
+
+def write_pid():
+    pid_fname = '{}_{}.pid'.format(os.path.splitext(os.path.basename(sys.argv[0]))[0], str(os.getpid()))
+    with open(pid_fname, 'w') as handler:
+        handler.write(str())
 
 
 def dump_json(dictionary, json_file):
@@ -307,7 +314,9 @@ def add_span(bot, update, user_data):
 
 def redirect_to_launch(bot, update, user_data):
     chat_id = update.message.chat_id
-    msg = 'Скрипт запущен. В зависимости от объема задачи  и количества запросов от разных пользователей операция может занять от нескольких секунд до нескольких часов. Результат будет отправлен по адресу {}.'.format(user_data[EMAIL])
+    msg = 'Скрипт запущен. В зависимости от объема задачи и количества запросов от разных пользователей ' \
+          'операция может занять от нескольких секунд до часа. ' \
+          'Результат будет отправлен по адресу {}.'.format(user_data[EMAIL])
     bot.send_message(chat_id=chat_id, text=msg)
     usrfile = get_filename(chat_id, 'usrdata')
     user_data[USRID] = chat_id
@@ -374,4 +383,5 @@ def main():
 
 
 if __name__ == '__main__':
+    write_pid()
     main()

@@ -34,6 +34,7 @@ def convert_running_time(value):
 def launch(source=None, task='INFO', out_format='CSV', out_name=None, span=30,
             demo=False):
     start = time.time()
+    print(source)
     if demo:
         # При demo=True используются параметры запроса по умолчанию [из settings].
         params = DEFAULT_PARAMS

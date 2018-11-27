@@ -43,7 +43,7 @@ def load_json(source):
 def write_emailscript(usrdata, msg_file):
     if usrdata.get(FNAME):
         f_path = os.path.join(os.getcwd(), 'data', usrdata[FNAME] + usrdata[EXTENSION])
-        zip_path = os.path.join(usrdata[FNAME] + '.zip')
+        zip_path = os.path.join(os.getcwd(), 'data', usrdata[FNAME] + '.zip') #####
         with zipfile.ZipFile(zip_path, 'w') as ziphandler:
             ziphandler.write(f_path, basename(f_path))
     text = "#!/bin/bash"
