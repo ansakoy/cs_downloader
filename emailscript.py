@@ -44,7 +44,7 @@ def write_emailscript(usrdata, msg_file):
     if usrdata.get(FNAME):
         f_path = os.path.join(os.getcwd(), 'data', usrdata[FNAME] + usrdata[EXTENSION])
         zip_path = os.path.join(os.getcwd(), 'data', usrdata[FNAME] + '.zip') #####
-        with zipfile.ZipFile(zip_path, 'w') as ziphandler:
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as ziphandler:
             ziphandler.write(f_path, basename(f_path))
     text = "#!/bin/bash"
     text += '\n{}="{}"'.format(SMTPFROM, EMAIL_DATA[SMTPFROM])

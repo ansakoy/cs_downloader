@@ -13,6 +13,7 @@ import downloader.api_builder as api_builder
 import downloader.settings as settings
 import downloader.process as process
 import downloader.daterange_processor as daterange_processor
+import downloader.stats as stats
 
 # USER_DATA FIELDS
 MODE_CHOICE = 'mode_choice'
@@ -161,6 +162,7 @@ def error(bot, update, error):
 
 
 def start(bot, update):
+    stats.upd_stats()
     update.message.reply_text("Выберите режим", reply_markup=markup_mode)
     return DIALOGUE[MODE_CHOICE]
 
@@ -253,15 +255,15 @@ def outformat(bot, update, user_data):
 
 def email(bot, update, user_data):
     email = update.message.text
-    if '@' not in email or '.' not in email.split('@')[-1]:
-        update.message.reply_text("Вы указали некорректный email", reply_markup=markup_cancel)
-        return DIALOGUE[EMAIL]
-    elif email == CANCEL:
+    if email == CANCEL:
         update.message.reply_text('Задача снята.')
         if user_data.get(PARAMS_SOURCE):
             os.remove(user_data[PARAMS_SOURCE])
         user_data.clear()
         return ConversationHandler.END
+    if '@' not in email or '.' not in email.split('@')[-1]:
+        update.message.reply_text("Вы указали некорректный email", reply_markup=markup_cancel)
+        return DIALOGUE[EMAIL]
     user_data[EMAIL] = email
     # print(user_data[EMAIL])
     update.message.reply_text("Вы можете указать число дней в подпериодах, на которые может быть разбит период для дробления запроса. Число дней указывается целым числом. Если вы не хотите указывать этот параметр, просто нажмите кнопку 'Запуск'", reply_markup=markup_launch)
@@ -323,6 +325,7 @@ def redirect_to_launch(bot, update, user_data):
     usrdata_path = os.path.join('usrdata', '{}.json'.format(usrfile))
     dump_json(user_data, usrdata_path)
     user_data.clear()
+    stats.upd_stats(full=True)
 
 
 def sos(bot, update):
@@ -350,11 +353,18 @@ def sos(bot, update):
     bot.send_message(chat_id=chat_id, text=text)
 
 
+def statistics(bot, update):
+    chat_id = update.message.chat_id
+    result = stats.show_stats()
+    bot.send_message(chat_id=chat_id, text=result)
+
+
 def main():
     updater = Updater(token=TOKEN)
     dispatcher = updater.dispatcher
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', sos)
+    help_handler = CommandHandler('stats', statistics)
     # test_handler = CommandHandler('test', test)
     # test_dialogue_handler = ConversationHandler(
     #             entry_points=[test_handler],

@@ -108,6 +108,7 @@ def get_response_from_api(url):
     try:
         response = requests.get(url)
         if response.status_code < 400:
+            print(url, response.status_code)
             return response.json()
         elif response.status_code < 500:
             print(url, response.status_code)

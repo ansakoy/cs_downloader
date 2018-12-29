@@ -59,9 +59,3 @@ def build_query(strategy, params):
             daterange_value = params[param]
     return url, daterange_value
 
-
-if __name__ == '__main__':
-    # get_params_from_csv()
-    params = get_params_from_csv()
-    strat = choose_strategy(params)
-    print(build_query(strat, params)[1])
